@@ -180,3 +180,6 @@ details.ms summary{font-size:13px;font-weight:700;color:var(--t2);text-transform
 @media(min-width:760px){#view{max-width:720px;margin:0 auto}.mapwrap{max-width:none}}
 /* Search: price on the right of each row, names wrap */
 #sres .srow{align-items:baseline}#sres .srow span{order:1;white-space:normal;overflow-wrap:anywhere}#sres .srow b{order:2;min-width:0;margin-left:auto;text-align:right;flex:none}
+/* Search: name/venue left, price box, then arrow at the far right; names wrap */
+#sres .hrow{align-items:center}#sres .hrow .info{order:1}#sres .hrow .token{order:2;flex:none;margin-left:auto;align-self:stretch}#sres .hrow .chev{order:3}
+#sres .info .in,#sres .info .bn2{white-space:normal;overflow-wrap:anywhere}
