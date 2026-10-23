@@ -5,7 +5,7 @@ var INKIND_URL='https://app.inkind.com/refer/VMDEOCC5';
 var STRIP=[36.1147,-115.1728];
 var KS=['hh','br','ln'];
 var META={hh:{label:'Happy Hour',color:'#FF5C8A',icon:'glass',icat:'hh'},br:{label:'Brunch',color:'#FF7A59',icon:'cup',icat:'brunch'},ln:{label:'Late Night',color:'#A78BFA',icon:'moon',icat:'late'}};
-var ICONS={
+var ICONS={chat:'<path d="M4 5h16v11H9l-5 4z"/><path d="M8 10h8M8 13h5"/>',camera:'<path d="M3 8h4l2-3h6l2 3h4v11H3z"/><circle cx="12" cy="13" r="3.5"/>',send:'<path d="M4 12 20 4l-6 16-3-7z"/>',
  flame:'<path d="M12 2s5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 1-3s0 2 2 2c0-4 2-9 2-9z" fill="currentColor" stroke="none"/>',
  glass:'<path d="M5 4h14l-7 8zM12 12v8M8 20h8"/>',cup:'<path d="M4 8h13v5a6 6 0 0 1-12 0zM17 9h2a2 2 0 0 1 0 4h-2M8 3v2M12 3v2"/>',moon:'<path d="M20 14A8 8 0 1 1 10 4a6 6 0 0 0 10 10z"/>',
  pin:'<path d="M12 21s-7-6-7-12a7 7 0 0 1 14 0c0 6-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/>',clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
@@ -78,7 +78,7 @@ function street(a){return a?String(a).split(',')[0].trim():''}
 function dirUrl(v){var d=(v.lat!=null&&!v.approx)?(v.lat+','+v.lng):(v.name+', '+v.addr);return 'https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(d)}
 
 /* ---------- shared bits ---------- */
-function header(greet){return '<div class="hdr"><div><div class="brand">'+ic('flame')+'BamBoozle</div><div class="greet">'+esc(greet)+'</div></div><a class="round" href="#/me" aria-label="Me">'+ic('person')+'</a></div>'}
+function header(greet){return '<div class="hdr"><div><div class="brand">'+ic('flame')+'BamBoozle</div><div class="greet">'+esc(greet)+'</div></div><div class="hbtns"><a class="round gold" href="#/chat" aria-label="Ask BamBoozle">'+ic('chat')+'</a><a class="round" href="#/me" aria-label="Me">'+ic('person')+'</a></div></div>'}
 function chipsHtml(list,cur,attr){return '<div class="chips" role="tablist">'+list.map(function(c){return '<button class="chip'+(c[0]===cur?' on':'')+'" data-'+attr+'="'+c[0]+'" role="tab" aria-selected="'+(c[0]===cur)+'">'+esc(c[1])+'</button>'}).join('')+'</div>'}
 var TYPE_CHIPS=[['all','All'],['hh','Happy Hour'],['br','Brunch'],['ln','Late Night']];
 function empty(icon,title,text,btn){return '<div class="empty"><div class="ic">'+ic(icon)+'</div><h3>'+esc(title)+'</h3><p>'+esc(text)+'</p>'+(btn||'')+'</div>'}
@@ -220,7 +220,11 @@ function drawCarousel(vis){
 function selectOnMap(id,pan){mapSel=id;var v=DATA[id];if(pan)map.panTo([v.lat,v.lng]);drawMap(false);var el=document.querySelector('[data-cid="'+id+'"]');if(el)el.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'})}
 
 /* ---------- DETAIL ---------- */
-function loadMenus(){if(menusP)return menusP;menusP=fetch('menus.json').then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){MENUS=j.m||{};return MENUS}).catch(function(){menusP=null;return null});return menusP}
+var PHOTOS=null,photosP=null;
+function loadPhotos(){if(photosP)return photosP;photosP=fetch('photos.json').then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){PHOTOS=j.venues||{};return PHOTOS}).catch(function(){photosP=null;PHOTOS={};return PHOTOS});return photosP}
+function vPhotos(v){var P=PHOTOS&&PHOTOS[v.id];return P&&P.name===v.name?P:null}
+function photoFor(P,name){if(!P)return null;var a=P.items[BBChat.norm(name)];return a&&a.length?a:null}
+function loadMenus(){if(menusP)return menusP;loadPhotos();menusP=fetch('menus.json').then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){MENUS=j.m||{};return MENUS}).catch(function(){menusP=null;return null});return menusP}
 var MT={hh:'Happy Hour',br:'Brunch',ln:'Late Night',dn:'Dinner',dr:'Drinks'};
 var dTab={};
 function renderDetail(id){
@@ -244,20 +248,23 @@ function renderDetail(id){
   if(v.lat!=null){var mm=L.map('mini',{zoomControl:false,attributionControl:false,dragging:false,scrollWheelZoom:false,doubleClickZoom:false,touchZoom:false,boxZoom:false,keyboard:false}).setView([v.lat,v.lng],15);
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{className:'darktiles'}).addTo(mm);L.marker([v.lat,v.lng],{icon:L.divIcon({className:'',html:'<div class="pin on"></div>',iconSize:[16,16],iconAnchor:[8,8]})}).addTo(mm);
     $('mini').onclick=function(){mapSel=v.id;mapF='all';location.hash='#/map';setTimeout(function(){map.setView([v.lat,v.lng],16);drawMap(false)},50)}}
-  menuBlock(v);if(!MENUS)loadMenus().then(function(){if(location.hash==='#/spot/'+v.id)menuBlock(v)});
+  menuBlock(v);if(!MENUS||!PHOTOS)Promise.all([loadMenus(),loadPhotos()]).then(function(){if(location.hash==='#/spot/'+v.id)menuBlock(v)});
 }
-function menuTabs(v){var M=MENUS&&MENUS[v.id],t=[];KS.forEach(function(k){if(v[k]&&itemsFor(v,k).length)t.push(k)});if(M&&M.f)t.push('dn');if(M&&M.d)t.push('dr');return t}
+function menuTabs(v){var M=MENUS&&MENUS[v.id],t=[],X=vPhotos(v);if(X){M=M||{};if(!M.f&&X.extra.f.length)M={f:[],d:M.d,u:M.u};if(!M.d&&X.extra.d.length)M={f:M.f,d:[],u:M.u}}KS.forEach(function(k){if(v[k]&&itemsFor(v,k).length)t.push(k)});if(M&&M.f)t.push('dn');if(M&&M.d)t.push('dr');return t}
 function menuBlock(v){
   var b=$('menublock');if(!b)return;var tabs=menuTabs(v),M=MENUS&&MENUS[v.id];
   if(!tabs.length){b.innerHTML='<div class="card grad"><h4>Menu</h4><div class="tm">'+(MENUS?'No menu found for this spot yet.':'Loading menu…')+'</div></div>';return}
-  var sel=tabs.indexOf(dTab[v.id])>=0?dTab[v.id]:tabs[0];
+  var sel=tabs.indexOf(dTab[v.id])>=0?dTab[v.id]:tabs[0],X=vPhotos(v),PH=[];
+  var li=function(name,price,md){var ph=photoFor(X,name),at='';if(ph){at=' class="ph" data-ph="'+PH.length+'" role="button" tabindex="0" aria-label="'+esc(name)+' photo"';PH.push({name:name,price:price,srcs:ph})}
+    return '<li'+at+'><span class="nm">'+esc(name)+(ph?'<span class="phi" title="Photo">'+ic('camera')+'</span>':'')+(md?'<span class="md">'+esc(md)+'</span>':'')+'</span><span class="pr">'+esc(price)+'</span></li>'};
   var h='<div class="tabs" role="tablist">'+tabs.map(function(t){return '<button class="chip'+(t===sel?' on':'')+'" data-mt="'+t+'" role="tab">'+MT[t]+'</button>'}).join('')+'</div><div class="card grad">';
-  if(META[sel]){var its=itemsFor(v,sel);h+='<h4>'+MT[sel]+' deals</h4><ul class="items">'+its.map(function(i){return '<li><span class="nm">'+esc(i.name)+'</span><span class="pr">'+esc(fmtPrice(i))+'</span></li>'}).join('')+'</ul>';var u=safeUrl(v[sel].url);if(u)h+='<a class="src" href="'+esc(u)+'" target="_blank" rel="noopener">Source: '+esc(u.replace(/^https?:\/\/(www\.)?/,'').split('/')[0])+'</a>'}
-  else{var secs=M[sel==='dn'?'f':'d'],tot=0;secs.forEach(function(s){tot+=s[1].length});h+='<h4>'+MT[sel]+' menu <small style="color:#9A9AA0;font-weight:500">'+tot+' items</small></h4>';
-    secs.forEach(function(s,si){h+='<details class="ms"'+(tot<=40||si<2?' open':'')+'><summary>'+esc(s[0]||'Menu')+' ('+s[1].length+')</summary><ul class="items">'+s[1].map(function(it){var p=it[1]==null?'':'$'+(it[1]%1?it[1].toFixed(2):it[1])+(it[3]!=null&&it[3]>it[1]?'–$'+it[3]:'');return '<li><span class="nm">'+esc(it[0])+(it[2]?'<span class="md">'+esc(it[2])+'</span>':'')+'</span><span class="pr">'+esc(p)+'</span></li>'}).join('')+'</ul></details>'});
-    h+='<div class="note">Menu from the restaurant’s site; prices may change.</div>';var u2=safeUrl(M.u);if(u2)h+='<a class="src" href="'+esc(u2)+'" target="_blank" rel="noopener">Source: '+esc(u2.replace(/^https?:\/\/(www\.)?/,'').split('/')[0])+'</a>'}
+  if(META[sel]){var its=itemsFor(v,sel);h+='<h4>'+MT[sel]+' deals</h4><ul class="items">'+its.map(function(i){return li(i.name,fmtPrice(i))}).join('')+'</ul>';var u=safeUrl(v[sel].url);if(u)h+='<a class="src" href="'+esc(u)+'" target="_blank" rel="noopener">Source: '+esc(u.replace(/^https?:\/\/(www\.)?/,'').split('/')[0])+'</a>'}
+  else{var secs=((M&&M[sel==='dn'?'f':'d'])||[]).concat(X?X.extra[sel==='dn'?'f':'d']:[]),tot=0;secs.forEach(function(s){tot+=s[1].length});h+='<h4>'+MT[sel]+' menu <small style="color:#9A9AA0;font-weight:500">'+tot+' items</small></h4>';
+    secs.forEach(function(s,si){h+='<details class="ms"'+(tot<=40||si<2?' open':'')+'><summary>'+esc(s[0]||'Menu')+' ('+s[1].length+')</summary><ul class="items">'+s[1].map(function(it){var p=it[1]==null?'':'$'+(it[1]%1?it[1].toFixed(2):it[1])+(it[3]!=null&&it[3]>it[1]?'–$'+it[3]:'');return li(it[0],p,it[2])}).join('')+'</ul></details>'});
+    h+='<div class="note">Menu from the restaurant’s site; prices may change.'+(X?' '+esc(X.credit)+'; items without a price are from the photo set.':'')+'</div>';var u2=safeUrl(M&&M.u);if(u2)h+='<a class="src" href="'+esc(u2)+'" target="_blank" rel="noopener">Source: '+esc(u2.replace(/^https?:\/\/(www\.)?/,'').split('/')[0])+'</a>'}
   b.innerHTML=h+'</div>';
   b.querySelectorAll('[data-mt]').forEach(function(x){x.onclick=function(){dTab[v.id]=x.getAttribute('data-mt');menuBlock(v)}});
+  b.querySelectorAll('li.ph').forEach(function(x){var go=function(){openViewer(PH,+x.getAttribute('data-ph'))};x.onclick=go;x.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}}});
 }
 
 /* ---------- ME (replaces Replit Account tab: Set home, saved, inKind) ---------- */
@@ -294,6 +301,81 @@ function renderMe(){
   };
 }
 
+/* ---------- photo viewer ---------- */
+function openViewer(list,idx){var flat=[];list.forEach(function(p){p.srcs.forEach(function(s,j){flat.push({name:p.name,price:p.price,src:s,n:j+1,of:p.srcs.length})})});
+  var start=0;for(var i=0;i<idx;i++)start+=list[i].srcs.length;var cur=start,el=document.createElement('div');el.id='pv';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');
+  el.innerHTML='<button class="pvx" aria-label="Close">'+ic('x')+'</button><div class="pvimg"><img alt=""></div><button class="pvnav prev" aria-label="Previous photo">‹</button><button class="pvnav next" aria-label="Next photo">›</button><div class="pvcap"><b></b><span class="pvp"></span><small></small></div>';
+  document.body.appendChild(el);document.body.classList.add('noscroll');
+  var img=el.querySelector('img');
+  function show(){var f=flat[cur];img.src=f.src;img.alt=f.name;el.querySelector('.pvcap b').textContent=f.name;el.querySelector('.pvp').textContent=f.price||'';el.querySelector('.pvcap small').textContent=(cur+1)+' / '+flat.length;el.querySelector('.prev').hidden=flat.length<2;el.querySelector('.next').hidden=flat.length<2}
+  function step(d){cur=(cur+d+flat.length)%flat.length;show()}
+  function close(){document.removeEventListener('keydown',key);el.remove();document.body.classList.remove('noscroll')}
+  function key(e){if(e.key==='Escape')close();else if(e.key==='ArrowRight')step(1);else if(e.key==='ArrowLeft')step(-1)}
+  el.querySelector('.pvx').onclick=close;el.querySelector('.prev').onclick=function(){step(-1)};el.querySelector('.next').onclick=function(){step(1)};
+  var sx=null;el.addEventListener('touchstart',function(e){sx=e.touches[0].clientX},{passive:true});el.addEventListener('touchend',function(e){if(sx==null)return;var dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)>40)step(dx<0?1:-1);sx=null});
+  document.addEventListener('keydown',key);show();el.querySelector('.pvx').focus();window.BB2.viewer={close:close,step:step,cur:function(){return flat[cur]}};
+}
+
+/* ---------- chat ---------- */
+var API_BASE=ls('bb2ApiBase','https://bamboozle.mobile');
+var chatLog=[],chatBusy=false,chatSeq=0;
+var CHAT_EX=['happy hour near me now','cheapest burger within half a mile','brunch near home on sunday','late night tonight top rated','happy hours between home and Ocean Prime','open Ocean Prime drinks menu'];
+function vegasStamp(){try{var o={};new Intl.DateTimeFormat('en-US',{timeZone:'America/Los_Angeles',weekday:'short',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(new Date()).forEach(function(p){o[p.type]=p.value});return o.weekday+' '+o.year+'-'+o.month+'-'+o.day+' '+(o.hour==='24'?'00':o.hour)+':'+o.minute}catch(e){return new Date().toISOString().slice(0,16)}}
+function rateOk(){var now=Date.now(),a=(ls('bb2ChatRL',[])||[]).filter(function(t){return now-t<60000});if(a.length>=10)return false;a.push(now);lsSet('bb2ChatRL',a);return true}
+function homePt(){var h=home()||ls('bbHome',null);return h&&h.lat!=null?[+h.lat,+h.lng]:null}
+function remoteParse(text,onWake){
+  var down=+(sessionStorage.getItem('bb2ChatDown')||0);if(!API_BASE||Date.now()<down)return Promise.reject('down');
+  function once(){var ctl=typeof AbortController!=='undefined'?new AbortController():null,t=setTimeout(function(){ctl&&ctl.abort()},12000),w=setTimeout(onWake,1500);
+    return fetch(API_BASE.replace(/\/$/,'')+'/api/chat-parse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:text,today:vegasStamp()}),signal:ctl&&ctl.signal})
+      .then(function(r){if(!r.ok)throw {http:r.status};return r.json()}).then(function(j){var c=j&&(j.cmd?j:{cmd:j.tool||j.name,args:j.args||j.arguments});var v=BBChat.validate(c);if(!v.ok)throw {invalid:v.error};return v.cmd})
+      .finally(function(){clearTimeout(t);clearTimeout(w)})}
+  return once().catch(function(e){if(e&&e.invalid)return once();throw e}).catch(function(e){if(!(e&&e.invalid))sessionStorage.setItem('bb2ChatDown',String(Date.now()+10*60000));throw e});
+}
+function parseText(text,onWake){return remoteParse(text,onWake).then(function(c){c.src='ai';return c}).catch(function(){var v=BBChat.validate(BBChat.localParse(text,vegasNow().day));if(!v.ok)v={cmd:{cmd:'clarify',args:{question:'Sorry, I didn’t get that. Try “happy hour near me now”.'}}};v.cmd.src='local';return v.cmd})}
+function needsMe(c){var a=c.args||{};return [a.near,a.route_from,a.route_to].some(function(x){return x&&/^(me|my location|here|current location)$/i.test(x)})}
+function getLive(){return new Promise(function(res){if(live)return res(live);var done=false;setTimeout(function(){if(!done){done=true;res(null)}},9000);locate(function(p){if(!done){done=true;res(p)}})})}
+function execCmd(c){return Promise.all([loadMenus(),needsMe(c)?getLive():Promise.resolve(live)]).then(function(r){
+  return BBChat.run(c,{data:DATA,menus:MENUS||{},now:vegasNow(),me:r[1]||null,home:homePt()})})}
+function chatSend(text){text=String(text||'').replace(/\s+/g,' ').trim().slice(0,300);if(!text||chatBusy)return;
+  if(!rateOk()){chatLog.push({who:'bot',res:{type:'msg',message:'You’re sending a lot of requests. Wait a minute and try again.'}});renderChat();return}
+  chatLog.push({who:'me',text:text});chatBusy='Thinking…';renderChat();
+  parseText(text,function(){if(chatBusy){chatBusy='Waking up…';renderChat()}}).then(runAndShow);}
+function runAndShow(c){chatBusy='Searching…';renderChat();execCmd(c).then(function(res){chatBusy=false;
+  if(res.type==='open'){chatLog.push({who:'bot',cmd:c,res:res});if(res.tab)dTab[res.id]=res.tab;location.hash='#/spot/'+res.id;return}
+  chatLog.push({who:'bot',cmd:c,res:res});renderChat()}).catch(function(){chatBusy=false;chatLog.push({who:'bot',res:{type:'msg',message:'Something went wrong. Try again.'}});renderChat()})}
+function clone(o){return JSON.parse(JSON.stringify(o))}
+function botHtml(e,i){var r=e.res,h='';
+  if(r.type==='msg')return '<div class="bub bot">'+esc(r.message)+'</div>';
+  if(r.type==='need_home')return '<div class="bub bot">'+esc(r.message)+'<div class="acts2"><a class="schip on" href="#/me">Set Home</a></div></div>';
+  if(r.type==='open')return '<div class="bub bot">Opened '+esc(r.name)+(r.tab?' · '+esc(MT[r.tab]):'')+'. <a href="#/spot/'+r.id+'" class="lnk">Open again</a></div>';
+  if(r.type==='clarify'){h='<div class="bub bot">'+esc(r.question)+'<div class="acts2">';
+    if(r.suggestions&&r.suggestions.length)h+=r.suggestions.map(function(s,j){return '<button class="schip" data-cl="'+i+':'+j+'">'+esc(s.name)+'<small> '+esc(street(s.addr))+'</small></button>'}).join('');
+    else h+=CHAT_EX.slice(0,3).map(function(x){return '<button class="schip" data-ex="'+esc(x)+'">'+esc(x)+'</button>'}).join('');
+    return h+'</div></div>'}
+  var a=e.cmd.args||{},kind=r.type==='items'?'item'+(r.total===1?'':'s'):'spot'+(r.total===1?'':'s');
+  var what=(r.type==='items'?'Cheapest '+esc(a.item):(a.deal_type&&a.deal_type!=='any'?esc({happy_hour:'Happy hours',brunch:'Brunch',late_night:'Late night'}[a.deal_type]):'Spots')+(a.item?' with '+esc(a.item):''))+(a.day==='now'?' live now':a.day&&a.day!=='today'?' on '+esc(a.day[0].toUpperCase()+a.day.slice(1)):a.day==='today'?' today':'')+(a.price_max!=null?' under $'+a.price_max:'')+(a.in_kind?' on inKind':'');
+  h='<div class="bub bot"><b>'+what+'</b><div class="rs">'+r.total+' '+kind+(r.label?' · '+esc(r.label):'')+(r.total>r.rows.length?' · showing '+r.rows.length:'')+'</div>'+(r.notes||[]).map(function(n){return '<div class="rs">'+esc(n)+'</div>'}).join('')+(e.cmd.src==='local'?'<div class="rs dim">Matched with on-phone search</div>':'')+'</div>';
+  if(!r.rows.length){h+='<div class="nomatch"><h3>No matches</h3><div class="acts2">'+(a.route_from?'':'<button class="schip on" data-wd="'+i+'">Widen to '+((a.radius_miles||1)*2)+' mi</button>')+(a.day||a.time_from?'<button class="schip on" data-wt="'+i+'">Any time</button>':'')+(a.price_max!=null?'<button class="schip on" data-wp="'+i+'">Any price</button>':'')+'</div></div>';return h}
+  h+='<div class="cres">';
+  if(r.type==='items')h+=r.rows.map(function(x){return '<a class="irow" href="#/spot/'+x.v.id+'"><div class="in2"><b>'+esc(x.name)+'</b><small>'+esc(x.v.name)+(x.d!=null?' · '+fmtMi(x.d,x.v):'')+(x.src&&META[x.src]?' · '+META[x.src].label:x.src==='drinks'?' · Drinks menu':' · Menu')+'</small></div><span class="ip">$'+(x.price%1?x.price.toFixed(2):x.price)+'</span></a>'}).join('');
+  else h+=r.rows.map(function(x){return dealCard(x.v,x.k||null,x.hit?'<div class="hit"><span class="hn">'+esc(x.hit.name)+'</span>'+(x.hit.price!=null?'<b class="hp">$'+x.hit.price+'</b>':'')+'</div>':'')}).join('');
+  return h+'</div>'}
+function renderChat(){
+  var h=header('Ask for deals in plain words.')+'<div id="chatlog" class="chatlog">';
+  if(!chatLog.length)h+='<div class="bub bot">Hi! Tell me what you’re after and I’ll search BamBoozle’s spots. Results come straight from our data.<div class="acts2">'+CHAT_EX.map(function(x){return '<button class="schip" data-ex="'+esc(x)+'">'+esc(x)+'</button>'}).join('')+'</div></div>';
+  chatLog.forEach(function(e,i){h+=e.who==='me'?'<div class="bub me">'+esc(e.text)+'</div>':botHtml(e,i)});
+  if(chatBusy)h+='<div class="bub bot typing"><i></i><i></i><i></i><span>'+esc(chatBusy)+'</span></div>';
+  h+='</div><form class="chatbar" id="chatf"><input id="chatin" maxlength="300" placeholder="e.g. cheapest tacos near home" autocomplete="off" enterkeyhint="send" aria-label="Message"><button class="send" aria-label="Send"'+(chatBusy?' disabled':'')+'>'+ic('send')+'</button></form>';
+  var keep=$('chatin')?$('chatin').value:'';view.innerHTML=h;var inp=$('chatin');inp.value=keep;
+  $('chatf').onsubmit=function(e){e.preventDefault();var t=inp.value;inp.value='';chatSend(t)};
+  view.querySelectorAll('[data-ex]').forEach(function(b){b.onclick=function(){chatSend(b.getAttribute('data-ex'))}});
+  view.querySelectorAll('[data-cl]').forEach(function(b){b.onclick=function(){var p=b.getAttribute('data-cl').split(':'),e=chatLog[+p[0]],s=e.res.suggestions[+p[1]];
+    if(e.cmd&&e.res.role){var c=clone(e.cmd);c.args[e.res.role]=s.name;chatLog.push({who:'me',text:s.name});runAndShow(c)}else{chatLog.push({who:'me',text:s.name});runAndShow({cmd:'open_spot',args:{venue:s.name}})}}});
+  var widen=function(attr,fn){view.querySelectorAll('[data-'+attr+']').forEach(function(b){b.onclick=function(){var e=chatLog[+b.getAttribute('data-'+attr)],c=clone(e.cmd);fn(c.args);chatLog.push({who:'me',text:b.textContent});runAndShow(c)}})};
+  widen('wd',function(a){a.radius_miles=Math.min(50,(a.radius_miles||1)*2);if(!a.near)a.near='me'});widen('wt',function(a){delete a.day;delete a.time_from;delete a.time_to});widen('wp',function(a){delete a.price_max});
+  var lg=$('chatlog');scrollTo(0,document.body.scrollHeight);
+}
+
 /* ---------- router ---------- */
 function route(){
   var hsh=location.hash||'#/now',m;
@@ -301,8 +383,8 @@ function route(){
   document.querySelectorAll('#tabbar a').forEach(function(a){a.classList.toggle('on',a.getAttribute('data-tab')===tab)});
   if(tab!=='map'&&mapEl&&mapEl.parentNode)mapEl.parentNode.removeChild(mapEl);
   if((m=hsh.match(/^#\/spot\/(\d+)/)))return renderDetail(+m[1]);
-  ({now:renderNow,deals:renderDeals,map:renderMap,search:renderSearch,me:renderMe}[tab]||renderNow)();
-  if(tab!=='map'&&tab!=='spot')scrollTo(0,0);
+  ({now:renderNow,deals:renderDeals,map:renderMap,search:renderSearch,me:renderMe,chat:renderChat}[tab]||renderNow)();
+  if(tab!=='map'&&tab!=='spot'&&tab!=='chat')scrollTo(0,0);
 }
 window.addEventListener('hashchange',route);
 window.BB2={setNow:function(d,m){NOW_OVERRIDE=d==null?null:{day:d,min:m};route()}};

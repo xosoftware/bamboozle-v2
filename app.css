@@ -183,3 +183,36 @@ details.ms summary{font-size:13px;font-weight:700;color:var(--t2);text-transform
 /* Search: name/venue left, price box, then arrow at the far right; names wrap */
 #sres .hrow{align-items:center}#sres .hrow .info{order:1}#sres .hrow .token{order:2;flex:none;margin-left:auto;align-self:stretch}#sres .hrow .chev{order:3}
 #sres .info .in,#sres .info .bn2{white-space:normal;overflow-wrap:anywhere}
+/* header buttons */
+.hbtns{display:flex;gap:10px}.hbtns .round:not(.gold){background:var(--s);color:var(--t);border:1px solid var(--b);box-shadow:none}
+/* menu photos */
+.items li.ph{cursor:pointer}.items li.ph:active{background:rgba(232,163,23,.08)}
+.phi{display:inline-flex;vertical-align:-3px;margin-left:6px;color:var(--primary)}.phi svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2}
+body.noscroll{overflow:hidden}
+#pv{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.94);display:flex;flex-direction:column}
+#pv .pvimg{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;padding:calc(env(safe-area-inset-top) + 60px) 0 0}
+#pv img{max-width:100%;max-height:100%;object-fit:contain}
+#pv .pvx{position:absolute;top:calc(env(safe-area-inset-top) + 12px);right:14px;width:44px;height:44px;border-radius:22px;background:rgba(255,255,255,.12);border:0;color:#fff;display:flex;align-items:center;justify-content:center;z-index:2}
+#pv .pvx svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.2}
+#pv .pvnav{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:60px;border:0;background:rgba(255,255,255,.1);color:#fff;font-size:34px;line-height:1;border-radius:12px}
+#pv .prev{left:8px}#pv .next{right:8px}
+#pv .pvcap{padding:16px 20px calc(env(safe-area-inset-bottom) + 22px);display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px;color:#fff}
+#pv .pvcap b{flex:1;min-width:0;font-size:18px}#pv .pvp{color:var(--primary);font-weight:700;font-size:18px}#pv .pvcap small{width:100%;color:var(--t2);font-size:12px}
+/* chat */
+.chatlog{padding:0 16px 150px;display:flex;flex-direction:column;gap:10px}
+.bub{max-width:88%;padding:11px 14px;border-radius:16px;font-size:14.5px;line-height:1.4}
+.bub.me{align-self:flex-end;background:var(--primary);color:var(--bg);font-weight:600;border-bottom-right-radius:4px;overflow-wrap:anywhere}
+.bub.bot{align-self:flex-start;background:var(--s);border:1px solid var(--b);border-bottom-left-radius:4px}
+.bub .rs{font-size:12.5px;color:var(--t2);margin-top:4px}.bub .rs.dim{color:var(--t3)}
+.acts2{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.acts2 .schip{text-align:left}.acts2 .schip small{color:var(--t3);font-weight:500}
+.typing{display:flex;align-items:center;gap:5px;color:var(--t2);font-size:13px}.typing i{width:6px;height:6px;border-radius:3px;background:var(--primary);animation:tb 1s infinite}.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}.typing span{margin-left:6px}
+@keyframes tb{0%,80%,100%{opacity:.25}40%{opacity:1}}
+.cres{display:flex;flex-direction:column;gap:12px}.cres .dcard{margin:0}
+.nomatch{background:var(--s);border:1px dashed var(--b);border-radius:14px;padding:16px;text-align:center}.nomatch h3{font-size:16px}.nomatch .acts2{justify-content:center}
+.irow{display:flex;align-items:center;gap:12px;background:var(--s);border:1px solid var(--b);border-radius:14px;padding:12px 14px;color:var(--t)}
+.irow .in2{flex:1;min-width:0}.irow b{display:block;font-size:15px;overflow-wrap:anywhere}.irow small{display:block;color:var(--t2);font-size:12px;margin-top:3px}
+.irow .ip{flex:none;color:var(--primary);font-weight:700;font-size:17px;font-variant-numeric:tabular-nums}
+.chatbar{position:fixed;left:0;right:0;bottom:calc(84px + env(safe-area-inset-bottom));display:flex;gap:8px;padding:10px 14px;background:linear-gradient(transparent,var(--bg) 30%);z-index:50}
+.chatbar input{flex:1;min-width:0;background:var(--s);border:1px solid var(--b);border-radius:24px;padding:12px 16px;color:var(--t);font-size:16px}
+.chatbar .send{width:46px;height:46px;border-radius:23px;border:0;background:var(--primary);color:var(--bg);display:flex;align-items:center;justify-content:center}
+.chatbar .send svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2}.chatbar .send:disabled{opacity:.5}

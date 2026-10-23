@@ -218,6 +218,6 @@ function localParse(text,nowDay){var t=' '+String(text||'').toLowerCase().replac
   function pl(s){s=cap(s).replace(/^the\s+/,'');if(/^(me|my location|here|my current location)$/.test(s))return 'me';if(/^(home|my home|my house|my place)$/.test(s))return 'home';return s}
 }
 
-var api={validate:validate,run:run,localParse:localParse,matchVenue:matchVenue,itemMatcher:itemMatcher,activeAt:activeAt,overlaps:overlaps,segInfo:segInfo,hav:hav,SCHEMA:SCHEMA,DAYS:DAYS};
+var api={norm:norm,validate:validate,run:run,localParse:localParse,matchVenue:matchVenue,itemMatcher:itemMatcher,activeAt:activeAt,overlaps:overlaps,segInfo:segInfo,hav:hav,SCHEMA:SCHEMA,DAYS:DAYS};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.BBChat=api;
 })(typeof self!=='undefined'?self:this);
