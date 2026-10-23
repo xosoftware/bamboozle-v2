@@ -98,7 +98,7 @@ svg{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-lin
 .sbox input{flex:1;min-width:0;background:none;border:0;outline:0;color:var(--t);font:inherit;font-size:16px}
 .sbox button{background:none;border:0;color:var(--t3);padding:4px}
 .hint{color:var(--t3);font-size:13px;padding:0 22px 10px}
-.hit{margin-top:6px;font-size:12px;color:var(--t2)}.hit b{color:var(--primary)}
+.hit{margin-top:6px;font-size:12px;color:var(--t2);display:flex;align-items:baseline;gap:10px}.hit .hn{flex:1;min-width:0;overflow-wrap:anywhere}.hit em{font-style:normal;color:var(--t3,#6E6E73)}.hit .hp{flex:none;margin-left:auto;text-align:right;color:var(--primary);font-variant-numeric:tabular-nums}
 /* map */
 .mapwrap{position:fixed;inset:0 0 var(--tab) 0}
 #map{position:absolute;inset:0;background:#111}
@@ -178,3 +178,5 @@ details.ms summary{font-size:13px;font-weight:700;color:var(--t2);text-transform
 #toast{position:fixed;left:50%;bottom:calc(var(--tab) + 16px);transform:translateX(-50%) translateY(20px);opacity:0;background:var(--sh);color:var(--t);padding:10px 16px;border-radius:12px;font-size:14px;transition:.25s;z-index:2000;pointer-events:none;max-width:90vw}
 #toast.show{opacity:1;transform:translateX(-50%)}
 @media(min-width:760px){#view{max-width:720px;margin:0 auto}.mapwrap{max-width:none}}
+/* Search: price on the right of each row, names wrap */
+#sres .srow{align-items:baseline}#sres .srow span{order:1;white-space:normal;overflow-wrap:anywhere}#sres .srow b{order:2;min-width:0;margin-left:auto;text-align:right;flex:none}

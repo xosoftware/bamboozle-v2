@@ -179,7 +179,7 @@ function searchResults(){
   });
   res.sort(function(a,b){return b.score-a.score||(a.d==null?1e9:a.d)-(b.d==null?1e9:b.d)});
   var h='<div class="hint">'+res.length+' result'+(res.length===1?'':'s')+(MENUS?'':' · loading full menus…')+'</div><div class="pad">';
-  res.slice(0,sLimit).forEach(function(x){var hh='';if(x.hits.length){var f=x.hits[0];hh='<div class="hit">'+(f[2]==='menu'?'On menu: ':'Deal: ')+'<b>'+esc(f[1])+'</b> '+esc(f[0])+(x.hits.length>1?' · +'+(x.hits.length-1)+' more':'')+'</div>'}h+=dealCard(x.v,null,hh)});
+  res.slice(0,sLimit).forEach(function(x){var hh='';if(x.hits.length){var f=x.hits[0];hh='<div class="hit"><span class="hn">'+(f[2]==='menu'?'On menu: ':'Deal: ')+esc(f[0])+(x.hits.length>1?' <em>· +'+(x.hits.length-1)+' more</em>':'')+'</span>'+(f[1]?'<b class="hp">'+esc(f[1])+'</b>':'')+'</div>'}h+=dealCard(x.v,null,hh)});
   if(res.length>sLimit)h+='<button class="btn ghost loadmore" id="smore">Show more ('+(res.length-sLimit)+')</button>';
   if(!res.length)h+=empty('search','No results','Try a different search term');
   box.innerHTML=h+'</div>';if($('smore'))$('smore').onclick=function(){sLimit+=40;searchResults()};
