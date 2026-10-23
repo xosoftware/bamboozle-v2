@@ -387,7 +387,7 @@ function route(){
   if(tab!=='map'&&tab!=='spot'&&tab!=='chat')scrollTo(0,0);
 }
 window.addEventListener('hashchange',route);
-window.BB2={setNow:function(d,m){NOW_OVERRIDE=d==null?null:{day:d,min:m};route()}};
+window.BB2={setNow:function(d,m){NOW_OVERRIDE=d==null?null:{day:d,min:m};route()},chatLen:function(){return chatBusy?-1:chatLog.length}};
 setInterval(function(){var t=location.hash.split('/')[1]||'now';if(t==='now'&&!NOW_OVERRIDE){var y=scrollY;renderNow();scrollTo(0,y)}},60000);
 fetch('data.json',{cache:'no-cache'}).then(function(r){return r.json()}).then(function(d){
   DATA=d;DATA.forEach(function(v,i){v.id=i});
