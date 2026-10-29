@@ -97,7 +97,7 @@ function dealCard(v,k,hitHtml){
   if(rest.length){s+='<div class="sec">';rest.forEach(function(i){s+='<div class="srow"><b style="color:'+m.color+'">'+esc(fmtPrice(i)||'•')+'</b><span>'+esc(i.name)+'</span></div>'});if(extra)s+='<div class="more">+'+extra+' more deal'+(extra>1?'s':'')+'</div>';s+='</div>'}
   else if(!h&&k&&v[k]){var dl=k==='br'?(v.br.spec||v.br.bname):v[k].deals;if(present(dl))s+='<div class="more" style="font-size:13px;color:#9A9AA0">'+esc(dl)+'</div>'}
   if(hitHtml)s+=hitHtml;
-  s+='</div><div class="foot"><div class="fl">'+(k?'<span class="ty" style="color:'+m.color+'">'+ic(m.icon)+m.label+'</span>':'')+(times?'<span>'+ic('clock')+esc(times)+'</span>':'')+(d!=null?'<span>'+ic('pin')+fmtMi(d,v)+'</span>':'')+'</div><div class="fr">'+(onIK(v)?'<span class="ikb">'+ic('gift')+'inKind</span>':'')+(st&&st.bucket==='live'?'<span class="liveb"><i></i>Live</span>':'')+'</div></div></a>';
+  s+='</div><div class="foot"><div class="fl">'+(k?'<span class="ty" style="color:'+m.color+'">'+ic(m.icon)+m.label+'</span>':'')+(times?'<span>'+ic('clock')+esc(times)+'</span>':'')+(d!=null?'<span>'+ic('pin')+fmtMi(d,v)+'</span>':'')+'</div><div class="fr">'+(v.f1?'<span class="f1b">F1</span>':'')+(onIK(v)?'<span class="ikb">'+ic('gift')+'inKind</span>':'')+(st&&st.bucket==='live'?'<span class="liveb"><i></i>Live</span>':'')+'</div></div></a>';
   return s;
 }
 
@@ -135,11 +135,11 @@ function bindChips(attr,fn){view.querySelectorAll('[data-'+attr+']').forEach(fun
 
 /* ---------- DEALS ---------- */
 var dealF='all',dealSort='distance',dealLimit=30;
-var DEAL_CHIPS=TYPE_CHIPS.concat([['ik','inKind'],['saved','Saved']]);
+var DEAL_CHIPS=[TYPE_CHIPS[0],['f1','F1 Watch']].concat(TYPE_CHIPS.slice(1),[['ik','inKind'],['saved','Saved']]);
 function dealList(){
   var o=origin(),f=dealF;
-  var arr=DATA.filter(function(v){if(f==='ik')return onIK(v);if(f==='saved')return isSaved(v);if(f==='all')return KS.some(function(k){return v[k]})||onIK(v);return !!v[f]});
-  var k=(f==='all'||f==='ik'||f==='saved')?null:f;
+  var arr=DATA.filter(function(v){if(f==='ik')return onIK(v);if(f==='f1')return !!v.f1;if(f==='saved')return isSaved(v);if(f==='all')return KS.some(function(k){return v[k]})||onIK(v);return !!v[f]});
+  var k=(f==='all'||f==='ik'||f==='f1'||f==='saved')?null:f;
   arr=arr.map(function(v){return {v:v,d:miles(o,v),p:cheapest(v,k)}});
   if(dealSort==='price')arr.sort(function(a,b){return (a.p==null?1e9:a.p)-(b.p==null?1e9:b.p)||(a.d||0)-(b.d||0)});
   else arr.sort(function(a,b){return (a.d==null?1e9:a.d)-(b.d==null?1e9:b.d)||(b.v.rating||0)-(a.v.rating||0)});
@@ -187,9 +187,9 @@ function searchResults(){
 
 /* ---------- MAP (Explorer: floating glass search + chips, gold live pins / gray others, bottom carousel) ---------- */
 var map=null,mapLayer=null,mapF='live',mapQ='',mapSel=null,meMarker=null,mapEl=null;
-var MAP_CHIPS=[['live','Live now'],['all','All'],['hh','Happy Hour'],['br','Brunch'],['ln','Late Night'],['ik','inKind']];
+var MAP_CHIPS=[['live','Live now'],['all','All'],['f1','F1 Watch'],['hh','Happy Hour'],['br','Brunch'],['ln','Late Night'],['ik','inKind']];
 function mapVisible(){var re=mapQ.trim()?new RegExp(reEsc(mapQ.trim()),'i'):null;return DATA.filter(function(v){
-  if(v.lat==null)return false;if(mapF==='live'){if(!venueStatus(v)||venueStatus(v).bucket!=='live')return false}else if(mapF==='ik'){if(!onIK(v))return false}else if(mapF==='all'){if(!KS.some(function(k){return v[k]})&&!onIK(v))return false}else if(!v[mapF])return false;
+  if(v.lat==null)return false;if(mapF==='live'){if(!venueStatus(v)||venueStatus(v).bucket!=='live')return false}else if(mapF==='ik'){if(!onIK(v))return false}else if(mapF==='f1'){if(!v.f1)return false}else if(mapF==='all'){if(!KS.some(function(k){return v[k]})&&!onIK(v))return false}else if(!v[mapF])return false;
   if(re&&!re.test(v.name)&&!re.test(v.loc||'')&&!(v.items||[]).some(function(i){return re.test(i.name)}))return false;return true})}
 function renderMap(){
   view.innerHTML='<div class="mapwrap"><div id="mapc" style="position:absolute;inset:0"></div><div class="mapover"><label class="sbox glass">'+ic('search')+'<input id="mq" type="search" placeholder="Search the map" autocomplete="off" value="'+esc(mapQ)+'"></label>'+chipsHtml(MAP_CHIPS,mapF,'mf')+'</div><button class="locbtn glass" id="loc" aria-label="Center on me">'+ic('loc')+'</button><div class="carousel" id="car"></div></div>';
@@ -237,6 +237,7 @@ function renderDetail(id){
   if(v.lat!=null)h+='<div class="mini" id="mini"></div>';
   KS.forEach(function(k){var c=v[k];if(!c)return;var m=META[k],s=catStatus(c,vegasNow()),dl=k==='br'?c.spec:c.deals;
     h+='<div class="card grad"><h4 style="color:'+m.color+'">'+ic(m.icon)+m.label+(s&&s.bucket==='live'?' <span class="livep" style="margin-left:auto"><i></i>LIVE</span>':'')+'</h4><div class="tm">'+esc([present(c.days)?c.days:'',present(c.times)?c.times:''].filter(Boolean).join(' · ')||'Times not listed')+'</div>'+(present(dl)?'<p>'+esc(dl)+'</p>':'')+'</div>'});
+  if(v.f1){var fu=v.f1.url&&/^https?:\/\//.test(v.f1.url)?v.f1.url:'';h+='<div class="card grad f1card"><h4><span class="f1b">F1</span>F1 package</h4><div class="tm">'+esc(v.f1.event)+' · '+esc(v.f1.dates)+'</div><p class="f1price"><b>'+esc(v.f1.prices)+'</b></p>'+(v.f1.note?'<p>'+esc(v.f1.note)+'</p>':'')+(fu?'<a class="btn" href="'+esc(fu)+'" target="_blank" rel="noopener">'+ic('nav')+'Book / details: '+esc(fu.replace(/^https?:\/\/(www\.)?/,'').split('/')[0])+'</a>':'')+'<div class="tm" style="margin-top:8px">Prices from public listings (Oct 2026); confirm with the venue.</div></div>'}
   h+='<div id="menublock"></div>';
   if(v.ik)h+='<div class="card grad badge-ik"><div class="gi">'+ic('gift')+'</div><div style="flex:1"><h4>'+(onIK(v)?'On inKind':'Possibly on inKind')+'</h4><div class="tm">'+(onIK(v)?'Pay with inKind credit for bonus value.':'Unclear match — check the app.')+'</div><a class="src" href="'+INKIND_URL+'" target="_blank" rel="noopener">Open inKind (referral link)</a></div></div>';
   var notes=KS.map(function(k){return v[k]&&present(v[k].notes)?v[k].notes:''}).filter(Boolean);
