@@ -87,15 +87,14 @@ function metaRow(v,k,extra){var m=META[k]||{label:'inKind',color:'#E8A317',icon:
 /* Deal card — mirrors Replit DealCard: price token + item/venue, 2 secondary deals, footer chips + Live badge */
 function dealCard(v,k,hitHtml){
   k=primaryK(v,k);var m=META[k]||{label:'inKind',color:'#E8A317',icon:'gift'};
-  var its=k?headline(v,k):[],h=its[0],tok=h&&fmtPrice(h);
-  var rest=its.slice(1,3),extra=Math.max(0,its.length-1-rest.length);
+  var its=k?headline(v,k):[],h=its[0];
+  var shown=its.slice(0,3),extra=Math.max(0,its.length-shown.length);
   var st=k?catStatus(v[k],vegasNow()):null,d=miles(origin(),v);
   var times=k&&v[k]&&present(v[k].times)?String(v[k].times).split(' | ')[0]:'';
   var s='<a class="dcard grad" href="#/spot/'+v.id+'"><div class="body"><div class="hrow">';
-  if(tok)s+='<div class="token" style="background:'+rgba(m.color,.1)+';border-color:'+rgba(m.color,.28)+'"><b class="'+(tok.length>4?'sm':'')+'" style="color:'+m.color+'">'+esc(tok)+'</b><small>'+esc(h.type||'deal')+'</small></div>';
-  s+='<div class="info"><div class="in">'+esc(h?h.name:v.name)+'</div>'+(h?'<div class="bn2">'+esc(v.name)+'</div>':'')+'<div class="ad">'+esc(v.addr||v.loc||'')+'</div></div><svg class="chev" viewBox="0 0 24 24">'+ICONS.chev+'</svg></div>';
-  if(rest.length){s+='<div class="sec">';rest.forEach(function(i){s+='<div class="srow"><b style="color:'+m.color+'">'+esc(fmtPrice(i)||'•')+'</b><span>'+esc(i.name)+'</span></div>'});if(extra)s+='<div class="more">+'+extra+' more deal'+(extra>1?'s':'')+'</div>';s+='</div>'}
-  else if(!h&&k&&v[k]){var dl=k==='br'?(v.br.spec||v.br.bname):v[k].deals;if(present(dl))s+='<div class="more" style="font-size:13px;color:#9A9AA0">'+esc(dl)+'</div>'}
+  s+='<div class="info"><div class="in">'+esc(v.name)+'</div><div class="ad">'+esc(v.addr||v.loc||'')+'</div></div><svg class="chev" viewBox="0 0 24 24">'+ICONS.chev+'</svg></div>';
+  if(shown.length){s+='<ul class="items ditems">';shown.forEach(function(i){var p=fmtPrice(i);s+='<li><span class="nm">'+esc(i.name)+'</span>'+(p?'<span class="pr" style="color:'+m.color+'">'+esc(p)+'</span>':'')+'</li>'});s+='</ul>';if(extra)s+='<div class="more">+'+extra+' more deal'+(extra>1?'s':'')+'</div>'}
+  else if(k&&v[k]){var dl=k==='br'?(v.br.spec||v.br.bname):v[k].deals;if(present(dl))s+='<div class="dtext">'+esc(dl)+'</div>'}
   if(hitHtml)s+=hitHtml;
   s+='</div><div class="foot"><div class="fl">'+(k?'<span class="ty" style="color:'+m.color+'">'+ic(m.icon)+m.label+'</span>':'')+(times?'<span>'+ic('clock')+esc(times)+'</span>':'')+(d!=null?'<span>'+ic('pin')+fmtMi(d,v)+'</span>':'')+'</div><div class="fr">'+(v.f1?'<span class="f1b">F1</span>':'')+(onIK(v)?'<span class="ikb">'+ic('gift')+'inKind</span>':'')+(st&&st.bucket==='live'?'<span class="liveb"><i></i>Live</span>':'')+'</div></div></a>';
   return s;
@@ -134,12 +133,15 @@ function feedRow(x){
 function bindChips(attr,fn){view.querySelectorAll('[data-'+attr+']').forEach(function(b){b.onclick=function(){fn(b.getAttribute('data-'+attr))}})}
 
 /* ---------- DEALS ---------- */
-var dealF='all',dealSort='distance',dealLimit=30;
+var dealF='all',dealSort='distance',dealLimit=30,dealQ='';
 var DEAL_CHIPS=[TYPE_CHIPS[0],['f1','F1 Watch']].concat(TYPE_CHIPS.slice(1),[['ik','inKind'],['saved','Saved']]);
 function dealList(){
   var o=origin(),f=dealF;
   var arr=DATA.filter(function(v){if(f==='ik')return onIK(v);if(f==='f1')return !!v.f1;if(f==='saved')return isSaved(v);if(f==='all')return KS.some(function(k){return v[k]})||onIK(v);return !!v[f]});
   var k=(f==='all'||f==='ik'||f==='f1'||f==='saved')?null:f;
+  arr=arr.filter(function(v){var pk=primaryK(v,k);return !!pk&&headline(v,pk).some(function(i){return !!fmtPrice(i)})});
+  var q=dealQ.trim().toLowerCase();
+  if(q)arr=arr.filter(function(v){if(((v.name||'')+' '+(v.addr||'')+' '+(v.loc||'')).toLowerCase().indexOf(q)>=0)return true;return KS.some(function(kk){return v[kk]&&itemsFor(v,kk).some(function(i){return String(i.name||'').toLowerCase().indexOf(q)>=0})})});
   arr=arr.map(function(v){return {v:v,d:miles(o,v),p:cheapest(v,k)}});
   if(dealSort==='price')arr.sort(function(a,b){return (a.p==null?1e9:a.p)-(b.p==null?1e9:b.p)||(a.d||0)-(b.d||0)});
   else arr.sort(function(a,b){return (a.d==null?1e9:a.d)-(b.d==null?1e9:b.d)||(b.v.rating||0)-(a.v.rating||0)});
@@ -147,12 +149,14 @@ function dealList(){
 }
 function renderDeals(){
   var r=dealList();
-  var h=header('Don’t pay full price.')+chipsHtml(DEAL_CHIPS,dealF,'df')+'<div class="sortrow">Sort:<button class="schip'+(dealSort==='distance'?' on':'')+'" data-ds="distance">Distance</button><button class="schip'+(dealSort==='price'?' on':'')+'" data-ds="price">Price</button><span style="margin-left:auto">'+r.arr.length+' spots'+(originLabel()?' · '+originLabel():'')+'</span></div><div class="pad">';
+  var h=header('Don’t pay full price.')+chipsHtml(DEAL_CHIPS,dealF,'df')+'<div class="dcount">'+r.arr.length+' spots'+(originLabel()?' · '+originLabel():'')+'</div><div class="pad">';
   r.arr.slice(0,dealLimit).forEach(function(x){h+=dealCard(x.v,r.k)});
   if(r.arr.length>dealLimit)h+='<button class="btn ghost loadmore" id="more">Show more ('+(r.arr.length-dealLimit)+')</button>';
-  if(!r.arr.length)h+=dealF==='saved'?empty('heart','No saved spots yet','Tap the heart on any spot to keep it here.'):empty('beer','No deals here','Try a different filter.');
-  view.innerHTML=h+'</div>';
+  if(!r.arr.length)h+=dealF==='saved'?empty('heart','No saved spots yet','Tap the heart on any spot to keep it here.'):(dealQ.trim()?empty('beer','No matches','Try a different search.'):empty('beer','No deals here','Try a different filter.'));
+  h+='</div><div class="sortfab"><label class="fsearch"><svg viewBox="0 0 24 24">'+(ICONS.search||'')+'</svg><input id="dq" type="search" placeholder="Search deals" autocomplete="off" value="'+esc(dealQ)+'"></label><span class="sep"></span><button class="schip'+(dealSort==='distance'?' on':'')+'" data-ds="distance">Distance</button><button class="schip'+(dealSort==='price'?' on':'')+'" data-ds="price">Price</button></div>';
+  view.innerHTML=h;
   bindChips('df',function(v){dealF=v;dealLimit=30;renderDeals()});bindChips('ds',function(v){dealSort=v;dealLimit=30;renderDeals()});
+  var dq=$('dq');dq.oninput=function(){dealQ=dq.value;dealLimit=30;var y=scrollY,c=dq.selectionStart;renderDeals();scrollTo(0,y);var n=$('dq');n.focus();try{n.setSelectionRange(c,c)}catch(e){}};
   if($('more'))$('more').onclick=function(){dealLimit+=40;var y=scrollY;renderDeals();scrollTo(0,y)};
 }
 

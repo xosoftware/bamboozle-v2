@@ -68,6 +68,8 @@ svg{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-lin
 .info .in{font-size:17px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .info .bn2{font-size:13px;font-weight:600;color:var(--t2);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .info .ad{font-size:12px;color:var(--t3);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ditems{margin:0}.ditems li{padding:8px 0;font-size:14px}.ditems .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ditems .pr{font-variant-numeric:tabular-nums}
+.dtext{font-size:13px;color:var(--t2)}
 .chev{align-self:center;width:18px;height:18px;color:var(--t3);flex:none}
 .sec{display:flex;flex-direction:column;gap:8px}
 .srow{display:flex;align-items:center;gap:12px;background:var(--s);border-radius:10px;padding:9px 12px}
@@ -219,3 +221,14 @@ body.noscroll{overflow:hidden}
 
 .f1b{display:inline-block;background:#e10600;color:#fff;font-weight:900;font-style:italic;font-size:11px;padding:2px 7px;border-radius:6px;margin-right:6px}
 .f1card h4{display:flex;align-items:center}.f1price{font-size:16px}
+
+.dcount{padding:0 20px 10px;font-size:12px;color:var(--t3)}
+.sortfab{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--tab) + env(safe-area-inset-bottom) + 12px);z-index:999;display:flex;align-items:center;gap:8px;padding:8px 10px 8px 14px;border-radius:999px;background:rgba(22,22,26,.78);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--b);box-shadow:0 8px 24px rgba(0,0,0,.45);font-size:12px;color:var(--t3)}
+.sortfab{width:min(440px,calc(100vw - 24px));box-sizing:border-box;padding:6px 6px 6px 12px;gap:6px}
+.sortfab .schip{padding:6px 12px;flex:none}
+.fsearch{flex:1;min-width:0;display:flex;align-items:center;gap:6px;height:32px}
+.fsearch svg{width:15px;height:15px;color:var(--t3);flex:none}
+.fsearch input{flex:1;min-width:0;width:100%;background:none;border:0;outline:0;color:var(--t);font:inherit;font-size:16px;-webkit-appearance:none}
+.fsearch input::-webkit-search-cancel-button{filter:invert(.6)}
+.sortfab .sep{width:1px;height:20px;background:var(--b);flex:none}
+#view .pad:has(+.sortfab){padding-bottom:72px}
