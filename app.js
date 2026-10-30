@@ -85,9 +85,9 @@ function empty(icon,title,text,btn){return '<div class="empty"><div class="ic">'
 function metaRow(v,k,extra){var m=META[k]||{label:'inKind',color:'#E8A317',icon:'gift'};return '<div class="meta" style="color:'+m.color+'">'+ic(m.icon)+'<span>'+m.label+'</span>'+(extra||'')+'</div>'}
 
 /* Deal card — mirrors Replit DealCard: price token + item/venue, 2 secondary deals, footer chips + Live badge */
-function dealCard(v,k,hitHtml){
+function dealCard(v,k,hitHtml,mt){
   k=primaryK(v,k);var m=META[k]||{label:'inKind',color:'#E8A317',icon:'gift'};
-  var its=k?headline(v,k):[],h=its[0];
+  var its=mt||(k?headline(v,k):[]),h=its[0];
   var shown=its.slice(0,3),extra=Math.max(0,its.length-shown.length);
   var st=k?catStatus(v[k],vegasNow()):null,d=miles(origin(),v);
   var times=k&&v[k]&&present(v[k].times)?String(v[k].times).split(' | ')[0]:'';
@@ -139,10 +139,9 @@ function dealList(){
   var o=origin(),f=dealF;
   var arr=DATA.filter(function(v){if(f==='ik')return onIK(v);if(f==='f1')return !!v.f1;if(f==='saved')return isSaved(v);if(f==='all')return KS.some(function(k){return v[k]})||onIK(v);return !!v[f]});
   var k=(f==='all'||f==='ik'||f==='f1'||f==='saved')?null:f;
-  arr=arr.filter(function(v){var pk=primaryK(v,k);return !!pk&&headline(v,pk).some(function(i){return !!fmtPrice(i)})});
   var q=dealQ.trim().toLowerCase();
-  if(q)arr=arr.filter(function(v){if(((v.name||'')+' '+(v.addr||'')+' '+(v.loc||'')).toLowerCase().indexOf(q)>=0)return true;return KS.some(function(kk){return v[kk]&&itemsFor(v,kk).some(function(i){return String(i.name||'').toLowerCase().indexOf(q)>=0})})});
-  arr=arr.map(function(v){return {v:v,d:miles(o,v),p:cheapest(v,k)}});
+  if(!q){arr=arr.filter(function(v){var pk=primaryK(v,k);return !!pk&&headline(v,pk).some(function(i){return !!fmtPrice(i)})});arr=arr.map(function(v){return {v:v,d:miles(o,v),p:cheapest(v,k)}})}
+  else arr=arr.map(function(v){var mt=itemsFor(v,k).filter(function(i){return String(i.name||'').toLowerCase().indexOf(q)>=0}).sort(function(a,b){var pa=!!fmtPrice(a),pb=!!fmtPrice(b);if(pa!==pb)return pa?-1:1;return (a.price||0)-(b.price||0)});var p=null;mt.forEach(function(i){if(i.price!=null&&(p==null||i.price<p))p=i.price});return {v:v,d:miles(o,v),p:p,mt:mt}}).filter(function(x){return x.mt.length});
   if(dealSort==='price')arr.sort(function(a,b){return (a.p==null?1e9:a.p)-(b.p==null?1e9:b.p)||(a.d||0)-(b.d||0)});
   else arr.sort(function(a,b){return (a.d==null?1e9:a.d)-(b.d==null?1e9:b.d)||(b.v.rating||0)-(a.v.rating||0)});
   return {arr:arr,k:k};
@@ -150,7 +149,7 @@ function dealList(){
 function renderDeals(){
   var r=dealList();
   var h=header('Don’t pay full price.')+chipsHtml(DEAL_CHIPS,dealF,'df')+'<div class="dcount">'+r.arr.length+' spots'+(originLabel()?' · '+originLabel():'')+'</div><div class="pad">';
-  r.arr.slice(0,dealLimit).forEach(function(x){h+=dealCard(x.v,r.k)});
+  r.arr.slice(0,dealLimit).forEach(function(x){h+=dealCard(x.v,r.k,null,x.mt)});
   if(r.arr.length>dealLimit)h+='<button class="btn ghost loadmore" id="more">Show more ('+(r.arr.length-dealLimit)+')</button>';
   if(!r.arr.length)h+=dealF==='saved'?empty('heart','No saved spots yet','Tap the heart on any spot to keep it here.'):(dealQ.trim()?empty('beer','No matches','Try a different search.'):empty('beer','No deals here','Try a different filter.'));
   h+='</div><div class="sortfab"><label class="fsearch"><svg viewBox="0 0 24 24">'+(ICONS.search||'')+'</svg><input id="dq" type="search" placeholder="Search deals" autocomplete="off" value="'+esc(dealQ)+'"></label><span class="sep"></span><button class="schip'+(dealSort==='distance'?' on':'')+'" data-ds="distance">Distance</button><button class="schip'+(dealSort==='price'?' on':'')+'" data-ds="price">Price</button></div>';
