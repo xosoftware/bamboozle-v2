@@ -140,8 +140,9 @@ function dealList(){
   var arr=DATA.filter(function(v){if(f==='ik')return onIK(v);if(f==='f1')return !!v.f1;if(f==='saved')return isSaved(v);if(f==='all')return KS.some(function(k){return v[k]})||onIK(v);return !!v[f]});
   var k=(f==='all'||f==='ik'||f==='f1'||f==='saved')?null:f;
   var q=dealQ.trim().toLowerCase();
-  if(!q){arr=arr.filter(function(v){var pk=primaryK(v,k);return !!pk&&headline(v,pk).some(function(i){return !!fmtPrice(i)})});arr=arr.map(function(v){return {v:v,d:miles(o,v),p:cheapest(v,k)}})}
-  else arr=arr.map(function(v){var mt=itemsFor(v,k).filter(function(i){return String(i.name||'').toLowerCase().indexOf(q)>=0}).sort(function(a,b){var pa=!!fmtPrice(a),pb=!!fmtPrice(b);if(pa!==pb)return pa?-1:1;return (a.price||0)-(b.price||0)});var p=null;mt.forEach(function(i){if(i.price!=null&&(p==null||i.price<p))p=i.price});return {v:v,d:miles(o,v),p:p,mt:mt}}).filter(function(x){return x.mt.length});
+  function dollarItems(v){var pk=primaryK(v,k);return pk?itemsFor(v,pk).filter(function(i){return i.price!=null}).sort(function(a,b){return (a.price||0)-(b.price||0)}):[]}
+  if(!q){arr=arr.map(function(v){var mt=dollarItems(v);return {v:v,d:miles(o,v),p:cheapest(v,k),mt:mt}}).filter(function(x){return x.mt.length})}
+  else arr=arr.map(function(v){var mt=dollarItems(v).filter(function(i){return String(i.name||'').toLowerCase().indexOf(q)>=0});var p=null;mt.forEach(function(i){if(p==null||i.price<p)p=i.price});return {v:v,d:miles(o,v),p:p,mt:mt}}).filter(function(x){return x.mt.length});
   if(dealSort==='price')arr.sort(function(a,b){return (a.p==null?1e9:a.p)-(b.p==null?1e9:b.p)||(a.d||0)-(b.d||0)});
   else arr.sort(function(a,b){return (a.d==null?1e9:a.d)-(b.d==null?1e9:b.d)||(b.v.rating||0)-(a.v.rating||0)});
   return {arr:arr,k:k};
