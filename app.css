@@ -126,7 +126,7 @@ svg{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-lin
 .ccard .row{display:flex;gap:8px;align-items:center;margin-top:10px;font-size:12px;color:var(--t2)}
 .pin{width:16px;height:16px;border-radius:8px;background:#6b6b73;border:2px solid #0D0D0F;box-shadow:0 0 0 1px #6b6b73}
 .pin.on{background:var(--primary);box-shadow:0 0 0 1px var(--primary),0 0 10px rgba(232,163,23,.7)}
-.pin.sel{transform:scale(1.5);background:#2dd4bf}
+.pin.sel{transform:scale(1.5);background:#2dd4bf;box-shadow:0 0 0 1px #2dd4bfbd,0 0 10px #2dd4bfbf}
 .me-dot{width:14px;height:14px;border-radius:7px;background:#3B82F6;border:3px solid #fff;box-shadow:0 0 0 6px rgba(59,130,246,.25)}
 .marker-cluster div{background:rgba(232,163,23,.9)!important;color:#0D0D0F;font-weight:700}
 .marker-cluster{background:rgba(232,163,23,.3)!important}
