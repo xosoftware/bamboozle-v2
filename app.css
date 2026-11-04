@@ -38,7 +38,7 @@ svg{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-lin
 .meta svg{width:13px;height:13px;flex:none}
 .meta .loc{color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dot{color:var(--t3)}
-.ldeal{font-size:12px;color:#9a9aa0;margin-top:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ldeal{font-size:12px;color:#9a9aa0;margin-top:8px;overflow:hidden;text-overflow:ellipsis;white-space:pre-wrap}
 .pills{display:flex;gap:8px;margin-top:16px;align-items:center;flex-wrap:wrap}
 .livep{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:4px 10px;background:rgba(45,212,191,.15);color:var(--live);font-size:10px;font-weight:700;letter-spacing:1px}
 .livep i{width:7px;height:7px;border-radius:9px;background:var(--live)}
