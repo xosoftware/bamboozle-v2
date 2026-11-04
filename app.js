@@ -132,9 +132,9 @@ function feedRow(x){
   var times=v[s.k]&&present(v[s.k].times)?ft(String(v[s.k].times).split(' | ')[0]):'';
   var mp=[];if(street(v.addr))mp.push('<span class="loc">'+esc(street(v.addr))+'</span>');if(x.d!=null)mp.push('<span class="loc" style="flex:none">'+fmtMi(x.d,v)+'</span>');
   var addr=mp.length?'<div class="meta faddr">'+mp.join('<span class="dot">·</span>')+'</div>':'';
-  return '<a class="frow grad" href="#/spot/'+v.id+'"><div class="main"><div class="bn">'+esc(v.name)+'</div>'+addr+metaRow(v,s.k)+(it?'<span class="dchip">'+esc((fmtPrice(it)?fmtPrice(it)+' ':'')+it.name)+'</span>':'')+(onIK(v)?'<div style="margin-top:8px"><span class="ikb">'+ic('gift')+'inKind</span></div>':'')+'</div><div class="vdiv"></div><div class="tcol">'+
+  return '<a class="frow fcol grad" href="#/spot/'+v.id+'"><div class="frtop"><div class="main"><div class="bn">'+esc(v.name)+'</div>'+addr+(it?'<span class="dchip">'+esc((fmtPrice(it)?fmtPrice(it)+' ':'')+it.name)+'</span>':'')+(onIK(v)?'<div style="margin-top:8px"><span class="ikb">'+ic('gift')+'inKind</span></div>':'')+'</div><div class="vdiv"></div><div class="tcol">'+
    (live?'<span class="livep"><i></i>LIVE</span><div class="left">'+esc(s.endsIn)+' left</div>':ic('clock')+'<div class="h">'+esc(sp[0])+'</div><div class="p">'+esc(sp[1]||'')+'</div>')+
-   '<div class="tt">'+esc(s.win)+'</div></div></a>';
+   '<div class="tt">'+esc(s.win)+'</div></div></div><div class="foot ffoot">'+metaRow(v,s.k)+'</div></a>';
 }
 function bindChips(attr,fn){view.querySelectorAll('[data-'+attr+']').forEach(function(b){b.onclick=function(){fn(b.getAttribute('data-'+attr))}})}
 
