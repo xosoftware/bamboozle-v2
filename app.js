@@ -4,6 +4,9 @@
 var INKIND_URL='https://app.inkind.com/refer/VMDEOCC5';
 var STRIP=[36.1147,-115.1728];
 var KS=['hh','br','ln'];
+/* A category counts only if it has a priced/discount deal or named items for it; placeholder "could not find / not listed" listings are hidden from deal surfaces. */
+var DEAL_RE=/\$\s?\d|\d+\s?%|\bhalf[- ]?(off|price)|\bbogo\b|\d\s?for\s?\d|\boff\b|bottomless|\$/i;
+function realDeal(v,k){var c=v[k];if(!c)return false;var t=[c.deals,c.items,c.spec].filter(Boolean).join(' ');if(DEAL_RE.test(t))return true;return (v.items||[]).some(function(i){return i.q!=='meta'&&i.category===({hh:'hh',br:'brunch',ln:'late'})[k]&&i.name})}
 var META={hh:{label:'Happy Hour',color:'#FF5C8A',icon:'glass',icat:'hh'},br:{label:'Brunch',color:'#FF7A59',icon:'cup',icat:'brunch'},ln:{label:'Late Night',color:'#A78BFA',icon:'moon',icat:'late'}};
 var ICONS={chat:'<path d="M4 5h16v11H9l-5 4z"/><path d="M8 10h8M8 13h5"/>',camera:'<path d="M3 8h4l2-3h6l2 3h4v11H3z"/><circle cx="12" cy="13" r="3.5"/>',send:'<path d="M4 12 20 4l-6 16-3-7z"/>',
  flame:'<path d="M12 2s5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 1-3s0 2 2 2c0-4 2-9 2-9z" fill="currentColor" stroke="none"/>',
@@ -52,9 +55,11 @@ function vegasNow(){
   try{var o={};new Intl.DateTimeFormat('en-US',{timeZone:'America/Los_Angeles',weekday:'short',hour:'numeric',minute:'numeric',hour12:false}).formatToParts(new Date()).forEach(function(p){o[p.type]=p.value});
     return {day:({Mon:0,Tue:1,Wed:2,Thu:3,Fri:4,Sat:5,Sun:6})[o.weekday],min:(parseInt(o.hour,10)%24)*60+parseInt(o.minute,10)}}catch(e){var n=new Date();return {day:(n.getDay()+6)%7,min:n.getHours()*60+n.getMinutes()}}
 }
-function clock(m){m=((m%1440)+1440)%1440;var h=Math.floor(m/60),mi=m%60,ap=h<12?'AM':'PM';h=h%12||12;return h+(mi?':'+(mi<10?'0':'')+mi:'')+' '+ap}
+function clock(m){m=((m%1440)+1440)%1440;var h=Math.floor(m/60),mi=m%60,ap=h<12?'AM':'PM';h=h%12||12;return h+(mi?':'+(mi<10?'0':'')+mi:'')+ap}
 function dur(m){var h=Math.floor(m/60),mi=m%60;return h?(h+'h'+(mi?' '+mi+'m':'')):mi+'m'}
-function winLabel(w){var a=clock(w[0]).split(' '),b=clock(w[1]).split(' ');return a[1]===b[1]?a[0]+'–'+b[0]+' '+b[1]:a.join(' ')+'–'+b.join(' ')}
+function winLabel(w){if(w[1]-w[0]>=1440)return 'All day';return ft(clock(w[0])+'-'+clock(w[1]))}
+/* Compact time style: 3-6PM, 11AM-2PM, 9PM-close */
+function ft(s){if(!s)return s;return String(s).replace(/(\d{1,2}(?::\d\d)?)\s*([AP]M)\s*[–—-]\s*(\d{1,2}(?::\d\d)?)\s*([AP]M)/gi,function(_,a,p,b,q){p=p.toUpperCase();q=q.toUpperCase();return p===q?a+'-'+b+q:a+p+'-'+b+q}).replace(/(\d)\s+([AP]M)\b/gi,function(_,d,p){return d+p.toUpperCase()}).replace(/([AP]M)\s*[–—-]\s*(close|late|midnight)/gi,'$1-$2')}
 /* status for one special: live | soon (starts within 2h) | later (later today) | null */
 function catStatus(c,n){
   if(!c||!c.sch)return null;var i,w,t=c.sch[n.day]||[],y=c.sch[(n.day+6)%7]||[],m2=n.min+1440;
@@ -90,7 +95,7 @@ function dealCard(v,k,hitHtml,mt){
   var its=mt||(k?headline(v,k):[]),h=its[0];
   var shown=its.slice(0,3),extra=Math.max(0,its.length-shown.length);
   var st=k?catStatus(v[k],vegasNow()):null,d=miles(origin(),v);
-  var times=k&&v[k]&&present(v[k].times)?String(v[k].times).split(' | ')[0]:'';
+  var times=k&&v[k]&&present(v[k].times)?ft(String(v[k].times).split(' | ')[0]):'';
   var s='<a class="dcard grad" href="#/spot/'+v.id+'"><div class="body"><div class="hrow">';
   s+='<div class="info"><div class="in">'+esc(v.name)+'</div><div class="ad">'+esc(v.addr||v.loc||'')+'</div></div><svg class="chev" viewBox="0 0 24 24">'+ICONS.chev+'</svg></div>';
   if(shown.length){s+='<ul class="items ditems">';shown.forEach(function(i){var p=fmtPrice(i);s+='<li><span class="nm">'+esc(i.name)+'</span>'+(p?'<span class="pr" style="color:'+m.color+'">'+esc(p)+'</span>':'')+'</li>'});s+='</ul>';if(extra)s+='<div class="more">+'+extra+' more deal'+(extra>1?'s':'')+'</div>'}
@@ -124,7 +129,7 @@ function renderNow(){
 var nowLimit={};
 function feedRow(x){
   var v=x.v,s=x.s,m=META[s.k],it=headline(v,s.k)[0],live=s.bucket==='live',sp=(s.startsAt||'').split(' ');
-  var times=v[s.k]&&present(v[s.k].times)?String(v[s.k].times).split(' | ')[0]:'';
+  var times=v[s.k]&&present(v[s.k].times)?ft(String(v[s.k].times).split(' | ')[0]):'';
   var extra=(street(v.addr)?'<span class="dot">·</span><span class="loc">'+esc(street(v.addr))+'</span>':'')+(x.d!=null?'<span class="dot">·</span><span class="loc" style="flex:none">'+fmtMi(x.d,v)+'</span>':'');
   return '<a class="frow grad" href="#/spot/'+v.id+'"><div class="main"><div class="bn">'+esc(v.name)+'</div>'+metaRow(v,s.k,extra)+(it?'<span class="dchip">'+esc((fmtPrice(it)?fmtPrice(it)+' ':'')+it.name)+'</span>':'')+(onIK(v)?'<div style="margin-top:8px"><span class="ikb">'+ic('gift')+'inKind</span></div>':'')+'</div><div class="vdiv"></div><div class="tcol">'+
    (live?'<span class="livep"><i></i>LIVE</span><div class="left">'+esc(s.endsIn)+' left</div>':ic('clock')+'<div class="h">'+esc(sp[0])+'</div><div class="p">'+esc(sp[1]||'')+'</div>')+
@@ -190,24 +195,28 @@ function searchResults(){
 }
 
 /* ---------- MAP (Explorer: floating glass search + chips, gold live pins / gray others, bottom carousel) ---------- */
-var map=null,mapLayer=null,mapF='live',mapQ='',mapSel=null,meMarker=null,mapEl=null,selLine=null;
+var map=null,mapLayer=null,mapF='live',mapQ='',mapSel=null,mapItem='',meMarker=null,mapEl=null,selLine=null;
+var MAP_ITEMS=['wings','tacos','margarita','oysters','burger','mimosa','sushi','pizza','martini','beer'];
 var MAP_CHIPS=[['live','Live now'],['all','All'],['f1','F1 Watch'],['hh','Happy Hour'],['br','Brunch'],['ln','Late Night'],['ik','inKind']];
 function mapVisible(){var re=mapQ.trim()?new RegExp(reEsc(mapQ.trim()),'i'):null;return DATA.filter(function(v){
   if(v.lat==null)return false;if(mapF==='live'){if(!venueStatus(v)||venueStatus(v).bucket!=='live')return false}else if(mapF==='ik'){if(!onIK(v))return false}else if(mapF==='f1'){if(!v.f1)return false}else if(mapF==='all'){if(!KS.some(function(k){return v[k]})&&!onIK(v))return false}else if(!v[mapF])return false;
+  if(mapItem){var ir=new RegExp('\\b'+reEsc(mapItem),'i');if(!(v.items||[]).some(function(i){return i.q!=='meta'&&ir.test(i.name)}))return false}
   if(re&&!re.test(v.name)&&!re.test(v.loc||'')&&!(v.items||[]).some(function(i){return re.test(i.name)}))return false;return true})}
 function renderMap(){
-  view.innerHTML='<div class="mapwrap"><div id="mapc" style="position:absolute;inset:0"></div><div class="mapover"><label class="sbox glass">'+ic('search')+'<input id="mq" type="search" placeholder="Search the map" autocomplete="off" value="'+esc(mapQ)+'"></label>'+chipsHtml(MAP_CHIPS,mapF,'mf')+'</div><button class="locbtn glass" id="loc" aria-label="Center on me">'+ic('loc')+'</button><div class="carousel" id="car"></div></div>';
+  view.innerHTML='<div class="mapwrap"><div id="mapc" style="position:absolute;inset:0"></div><div class="mapover"><label class="sbox glass">'+ic('search')+'<input id="mq" type="search" placeholder="Search the map" autocomplete="off" value="'+esc(mapQ)+'"></label>'+chipsHtml(MAP_CHIPS,mapF,'mf')+'<div class="chips ichips">'+MAP_ITEMS.map(function(s){return '<button class="chip'+(mapItem===s?' on':'')+'" data-sg="'+s+'">'+s+'</button>'}).join('')+'</div></div><button class="locbtn glass" id="loc" aria-label="Center on me">'+ic('loc')+'</button><div class="carousel" id="car"></div></div>';
   if(!mapEl){mapEl=document.createElement('div');mapEl.id='map';$('mapc').appendChild(mapEl);map=L.map(mapEl,{zoomControl:false,attributionControl:true}).setView(STRIP,12);map.on('zoomend',function(){if(selLine)drawSelLine()});map.on('moveend',function(){if(!origin()&&location.hash.indexOf('#/map')===0)drawCarousel(mapVisible())});
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,className:'darktiles',attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map)}
   if(mapEl.parentNode!==$('mapc'))$('mapc').appendChild(mapEl);map.invalidateSize();
   bindChips('mf',function(v){mapF=v;view.querySelectorAll('[data-mf]').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-mf')===v)});drawMap(true)});
+  view.querySelectorAll('.ichips [data-sg]').forEach(function(b){b.onclick=function(){var s=b.getAttribute('data-sg');mapItem=mapItem===s?'':s;mapSel=null;view.querySelectorAll('.ichips [data-sg]').forEach(function(x){x.classList.toggle('on',x.getAttribute('data-sg')===mapItem)});drawMap(true)}});
   $('mq').oninput=function(){mapQ=this.value;drawMap(false)};
   $('loc').onclick=function(){locate(function(p){if(p){map.setView(p,14);drawMe();drawMap(false)}},true)};
   $('car').onclick=function(e){var a=e.target.closest('.ccard[data-cid]');if(!a)return;var id=+a.getAttribute('data-cid');if(!(mapSel===id)){e.preventDefault();e.stopPropagation();selectOnMap(id,true);return}if(a.getAttribute('href')==='#/map'){e.preventDefault();location.hash='#/spot/'+id}};
   drawMe();drawMap(true);
 }
 function drawMe(){var o=origin();if(meMarker){map.removeLayer(meMarker);meMarker=null}if(o)meMarker=L.marker(o,{icon:L.divIcon({className:'',html:'<div class="me-dot"></div>',iconSize:[14,14],iconAnchor:[7,7]}),interactive:false}).addTo(map)}
-function drawSelLine(){if(!map)return;if(selLine){map.removeLayer(selLine);selLine=null}var o=origin(),v=mapSel!=null?DATA[mapSel]:null;if(!o||!v||v.lat==null)return;var a=map.latLngToLayerPoint(o),b=map.latLngToLayerPoint([v.lat,v.lng]),dx=b.x-a.x,dy=b.y-a.y,k=.18,cx=(a.x+b.x)/2-dy*k,cy=(a.y+b.y)/2+dx*k,pts=[];for(var i=0;i<=32;i++){var t=i/32,u=1-t;pts.push(map.layerPointToLatLng(L.point(u*u*a.x+2*u*t*cx+t*t*b.x,u*u*a.y+2*u*t*cy+t*t*b.y)))}var col=(getComputedStyle(document.documentElement).getPropertyValue('--primary')||'').trim()||'#E8A317';selLine=L.polyline(pts,{color:col,weight:3,opacity:.9,dashArray:'2 8',lineCap:'round',interactive:false,className:'selline'}).addTo(map)}
+function drawSelLine(){if(!map)return;if(selLine){map.removeLayer(selLine);selLine=null}var o=origin(),v=mapSel!=null?DATA[mapSel]:null;if(!o||!v||v.lat==null)return;selLine=curveLine(map,o,[v.lat,v.lng])}
+function curveLine(M,o,d){var a=M.latLngToLayerPoint(o),b=M.latLngToLayerPoint(d),dx=b.x-a.x,dy=b.y-a.y,k=.18,cx=(a.x+b.x)/2-dy*k,cy=(a.y+b.y)/2+dx*k,pts=[];for(var i=0;i<=32;i++){var t=i/32,u=1-t;pts.push(M.layerPointToLatLng(L.point(u*u*a.x+2*u*t*cx+t*t*b.x,u*u*a.y+2*u*t*cy+t*t*b.y)))}var col=(getComputedStyle(document.documentElement).getPropertyValue('--primary')||'').trim()||'#E8A317';return L.polyline(pts,{color:col,weight:3,opacity:.9,dashArray:'2 8',lineCap:'round',interactive:false,className:'selline'}).addTo(M)}
 function drawMap(fit){
   var vis=mapVisible();if(mapLayer)map.removeLayer(mapLayer);
   mapLayer=L.markerClusterGroup({showCoverageOnHover:false,maxClusterRadius:40,disableClusteringAtZoom:15});
@@ -226,7 +235,7 @@ function drawCarousel(vis){
   c.innerHTML=arr.map(function(x){var v=x.v;
     var k=(mapF==='hh'||mapF==='br'||mapF==='ln')?mapF:(mapF==='f1'||mapF==='ik'?null:(venueStatus(v)?venueStatus(v).k:primaryK(v)));
     var st=k?venueStatus(v,k):venueStatus(v);if(!k&&st)k=st.k;var m=k?META[k]:null;
-    var bullets=[],its=k?headline(v,k).slice(0,3):[];
+    var bullets=[],its=k?headline(v,k).slice(0,3):[];if(mapItem){var ir2=new RegExp('\\b'+reEsc(mapItem),'i');its=(v.items||[]).filter(function(i){return i.q!=='meta'&&ir2.test(i.name)}).sort(function(a,b){return (a.price==null?1e9:a.price)-(b.price==null?1e9:b.price)}).slice(0,3)}
     if(its.length)its.forEach(function(i){bullets.push({n:i.name,p:fmtPrice(i)})});
     else if(mapF==='f1'&&v.f1&&v.f1.prices)bullets.push({n:v.f1.prices,p:''});
     else if(k&&v[k]){var dl=k==='br'?(v.br.spec||v.br.bname):v[k].deals;if(present(dl)){String(dl).split(/[;|]/).map(function(s){return s.trim()}).filter(Boolean).slice(0,3).forEach(function(s){var m1=s.match(/^(\$[\d.]+(?:\s*[-–]\s*\$[\d.]+)?|\d+%|½ off|BOGO)\s+(.*)$/i)||s.match(/^(.*?)\s+(\$[\d.]+(?:\s*[-–]\s*\$[\d.]+)?)$/);if(m1&&m1[2]){var a=m1[1],b=m1[2];if(/^\$|\d+%|½|BOGO/i.test(a))bullets.push({n:b,p:a});else bullets.push({n:a,p:b})}else bullets.push({n:s.length>48?s.slice(0,45)+'…':s,p:''})})}}
@@ -235,7 +244,7 @@ function drawCarousel(vis){
     var dist=(mapSel===v.id?'Selected':(x.d!=null?fmtMi(x.d,v):esc(street(v.addr))));
     var badges=(mapF==='f1'&&v.f1?'<span class="f1b">F1</span>':'')+(onIK(v)?'<span class="ikb">'+ic('gift')+'inKind</span>':'');
     var href=(mapSel===v.id?'#/spot/'+v.id:'#/map');
-    var win=st?st.win:(k&&v[k]&&present(v[k].times)?String(v[k].times).split(' | ')[0]:'');
+    var win=st?st.win:(k&&v[k]&&present(v[k].times)?ft(String(v[k].times).split(' | ')[0]):'');
     return '<a class="ccard grad'+(mapSel===v.id?' sel':'')+'" data-cid="'+v.id+'" href="'+href+'"><div class="bn">'+esc(v.name)+'</div>'+(m?metaRow(v,k,win?'<span class="dot">·</span><span class="loc">'+esc(win)+'</span>':''):(mapF==='f1'&&v.f1?'<div class="meta" style="color:var(--primary)"><span class="f1b">F1</span><span>'+esc(v.f1.event||'F1 package')+'</span></div>':''))+dealHtml+'<div class="cfoot"><span class="cdist">'+dist+'</span><div class="cfr">'+badges+status+'</div></div></a>'}).join('')||'<div class="ccard grad"><div class="bn">No spots match</div><div class="cfoot"><span class="cdist">Try another filter</span></div></div>';
 }
 function selectOnMap(id,pan){mapSel=id;var v=DATA[id];if(pan&&v&&v.lat!=null){var o=origin(),car=$('car'),ch=car?car.getBoundingClientRect().height:0;if(o)map.fitBounds(L.latLngBounds([o,[v.lat,v.lng]]),{paddingTopLeft:[48,140],paddingBottomRight:[48,Math.min(ch,map.getSize().y*.55)+40],maxZoom:16});else map.setView([v.lat,v.lng],Math.max(map.getZoom(),15))}drawMap(false);var car=$('car');if(car)car.scrollTop=0;var el=document.querySelector('[data-cid="'+id+'"]');if(el)el.scrollIntoView({behavior:'smooth',block:'nearest',inline:'nearest'})}
@@ -259,7 +268,7 @@ function renderDetail(id){
   h+='<div class="acts"><a class="btn" href="'+esc(dirUrl(v))+'" target="_blank" rel="noopener">'+ic('nav')+'Directions</a>'+(onIK(v)?'<a class="btn ghost" href="'+INKIND_URL+'" target="_blank" rel="noopener">'+ic('gift')+'inKind</a>':'')+'</div>';
   if(v.lat!=null)h+='<div class="mini" id="mini"></div>';
   KS.forEach(function(k){var c=v[k];if(!c)return;var m=META[k],s=catStatus(c,vegasNow()),dl=k==='br'?c.spec:c.deals;
-    h+='<div class="card grad"><h4 style="color:'+m.color+'">'+ic(m.icon)+m.label+(s&&s.bucket==='live'?' <span class="livep" style="margin-left:auto"><i></i>LIVE</span>':'')+'</h4><div class="tm">'+esc([present(c.days)?c.days:'',present(c.times)?c.times:''].filter(Boolean).join(' · ')||'Times not listed')+'</div>'+(present(dl)?'<p>'+esc(dl)+'</p>':'')+'</div>'});
+    h+='<div class="card grad"><h4 style="color:'+m.color+'">'+ic(m.icon)+m.label+(s&&s.bucket==='live'?' <span class="livep" style="margin-left:auto"><i></i>LIVE</span>':'')+'</h4><div class="tm">'+esc([present(c.days)?c.days:'',present(c.times)?ft(c.times):''].filter(Boolean).join(' · ')||'Times not listed')+'</div>'+(present(dl)?'<p>'+esc(dl)+'</p>':'')+'</div>'});
   if(v.f1){var fu=v.f1.url&&/^https?:\/\//.test(v.f1.url)?v.f1.url:'';h+='<div class="card grad f1card"><h4><span class="f1b">F1</span>F1 package</h4><div class="tm">'+esc(v.f1.event)+' · '+esc(v.f1.dates)+'</div><p class="f1price"><b>'+esc(v.f1.prices)+'</b></p>'+(v.f1.note?'<p>'+esc(v.f1.note)+'</p>':'')+(fu?'<a class="btn" href="'+esc(fu)+'" target="_blank" rel="noopener">'+ic('nav')+'Book / details: '+esc(fu.replace(/^https?:\/\/(www\.)?/,'').split('/')[0])+'</a>':'')+'<div class="tm" style="margin-top:8px">Prices from public listings (Oct 2026); confirm with the venue.</div></div>'}
   h+='<div id="menublock"></div>';
   if(v.ik)h+='<div class="card grad badge-ik"><div class="gi">'+ic('gift')+'</div><div style="flex:1"><h4>'+(onIK(v)?'On inKind':'Possibly on inKind')+'</h4><div class="tm">'+(onIK(v)?'Pay with inKind credit for bonus value.':'Unclear match — check the app.')+'</div><a class="src" href="'+INKIND_URL+'" target="_blank" rel="noopener">Open inKind (referral link)</a></div></div>';
@@ -271,6 +280,7 @@ function renderDetail(id){
   $('dshare').onclick=function(){var t=v.name+' — '+(v.addr||'');if(navigator.share)navigator.share({title:v.name,text:t,url:location.href}).catch(function(){});else if(navigator.clipboard)navigator.clipboard.writeText(t+' '+location.href).then(function(){toast('Copied')})};
   if(v.lat!=null){var mm=L.map('mini',{zoomControl:false,attributionControl:false,dragging:false,scrollWheelZoom:false,doubleClickZoom:false,touchZoom:false,boxZoom:false,keyboard:false}).setView([v.lat,v.lng],15);
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{className:'darktiles'}).addTo(mm);L.marker([v.lat,v.lng],{icon:L.divIcon({className:'',html:'<div class="pin on"></div>',iconSize:[16,16],iconAnchor:[8,8]})}).addTo(mm);
+    var mo=origin();if(mo){L.marker(mo,{icon:L.divIcon({className:'',html:'<div class="me-dot"></div>',iconSize:[14,14],iconAnchor:[7,7]}),interactive:false}).addTo(mm);mm.fitBounds(L.latLngBounds([mo,[v.lat,v.lng]]),{padding:[28,28],maxZoom:16});var ml=null,dl=function(){if(ml)mm.removeLayer(ml);ml=curveLine(mm,mo,[v.lat,v.lng])};dl();mm.on('zoomend',dl)}
     $('mini').onclick=function(){mapSel=v.id;mapF='all';location.hash='#/map';setTimeout(function(){map.setView([v.lat,v.lng],16);drawMap(false)},50)}}
   menuBlock(v);if(!MENUS||!PHOTOS)Promise.all([loadMenus(),loadPhotos()]).then(function(){if(location.hash==='#/spot/'+v.id)menuBlock(v)});
 }
@@ -414,7 +424,7 @@ window.addEventListener('hashchange',route);
 window.BB2={setNow:function(d,m){NOW_OVERRIDE=d==null?null:{day:d,min:m};route()},chatLen:function(){return chatBusy?-1:chatLog.length}};
 setInterval(function(){var t=location.hash.split('/')[1]||'now';if(t==='now'&&!NOW_OVERRIDE){var y=scrollY;renderNow();scrollTo(0,y)}},60000);
 fetch('data.json',{cache:'no-cache'}).then(function(r){return r.json()}).then(function(d){
-  DATA=d;DATA.forEach(function(v,i){v.id=i});
+  DATA=d;DATA.forEach(function(v,i){v.id=i;KS.forEach(function(k){if(v[k]&&!realDeal(v,k)){v['nv_'+k]=v[k];v[k]=null}})});
   if(!location.hash)history.replaceState(null,'','#/now');
   route();
   locate(function(p){if(p&&!(home()&&useHome())&&!/^#\/(spot|search|me)/.test(location.hash))route()});

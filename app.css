@@ -248,3 +248,5 @@ body.noscroll{overflow:hidden}
 .fsearch input::-webkit-search-cancel-button{filter:invert(.6)}
 .sortfab .sep{width:1px;height:20px;background:var(--b);flex:none}
 #view .pad:has(+.sortfab){padding-bottom:72px}
+
+.mapover .ichips .chip{padding:6px 12px;font-size:12px}
