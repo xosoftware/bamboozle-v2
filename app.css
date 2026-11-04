@@ -144,6 +144,12 @@ svg{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-lin
 .ibtn{width:40px;height:40px;border-radius:20px;background:var(--s);border:1px solid var(--b);display:flex;align-items:center;justify-content:center}
 .ibtn svg{width:20px;height:20px}.ibtn.on{color:var(--primary)}
 .ibtn.on svg{fill:var(--primary)}
+.himg{position:relative;margin:4px 16px 14px;height:200px;border-radius:22px;overflow:hidden;background:radial-gradient(120% 90% at 20% 0%,rgba(232,163,23,.28),transparent 60%),linear-gradient(135deg,#1d1a2b,#0e0d14);border:1px solid rgba(255,255,255,.08);box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.himg.none{height:96px}
+.himg img{width:100%;height:100%;object-fit:cover;display:block}
+.himg:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 45%,rgba(10,10,15,.75));pointer-events:none}
+.hcred{position:absolute;z-index:1;right:10px;bottom:10px;display:inline-flex;gap:5px;align-items:center;font-size:11px;color:#fff;text-decoration:none;padding:5px 9px;border-radius:999px;background:rgba(20,20,28,.55);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.hcred svg{width:12px;height:12px;color:#E8A317}
 .dhero{padding:8px 20px 0}
 .dhero h1{margin:0;font-size:26px;letter-spacing:-.5px}
 .dhero .ad{color:var(--t2);font-size:14px;margin-top:6px}
