@@ -203,7 +203,7 @@ function renderMap(){
   bindChips('mf',function(v){mapF=v;view.querySelectorAll('[data-mf]').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-mf')===v)});drawMap(true)});
   $('mq').oninput=function(){mapQ=this.value;drawMap(false)};
   $('loc').onclick=function(){locate(function(p){if(p){map.setView(p,14);drawMe();drawMap(false)}},true)};
-  $('car').onclick=function(e){var a=e.target.closest('a.ccard[data-cid]');if(!a)return;var id=+a.getAttribute('data-cid');if(mapSel===id)return;e.preventDefault();selectOnMap(id,true)};
+  $('car').onclick=function(e){var a=e.target.closest('.ccard[data-cid]');if(!a)return;var id=+a.getAttribute('data-cid');if(!(mapSel===id)){e.preventDefault();e.stopPropagation();selectOnMap(id,true);return}if(a.getAttribute('href')==='#/map'){e.preventDefault();location.hash='#/spot/'+id}};
   drawMe();drawMap(true);
 }
 function drawMe(){var o=origin();if(meMarker){map.removeLayer(meMarker);meMarker=null}if(o)meMarker=L.marker(o,{icon:L.divIcon({className:'',html:'<div class="me-dot"></div>',iconSize:[14,14],iconAnchor:[7,7]}),interactive:false}).addTo(map)}
@@ -227,7 +227,8 @@ function drawCarousel(vis){
     var status=(st&&st.bucket==='live'?'<span class="livep"><i></i>LIVE</span>':st?'<span class="endp">'+esc(st.bucket==='soon'?'in '+st.startsIn:'at '+st.startsAt)+'</span>':'<span style="color:#5C5C64">Not on now</span>');
     var dist=(x.d!=null&&origin()?fmtMi(x.d,v):esc(street(v.addr)));
     var badges=(mapF==='f1'&&v.f1?'<span class="f1b">F1</span>':'')+(onIK(v)?'<span class="ikb">'+ic('gift')+'inKind</span>':'');
-    return '<a class="ccard grad'+(mapSel===v.id?' sel':'')+'" data-cid="'+v.id+'" href="#/spot/'+v.id+'"><div class="bn">'+esc(v.name)+'</div>'+(m?metaRow(v,k,st?'<span class="dot">·</span><span class="loc">'+esc(st.win)+'</span>':''):'')+(deal?'<div class="ldeal">'+esc(deal)+'</div>':'')+'<div class="cfoot"><span class="cdist">'+dist+'</span><div class="cfr">'+badges+status+'</div></div></a>'}).join('')||'<div class="ccard grad"><div class="bn">No spots match</div><div class="cfoot"><span class="cdist">Try another filter</span></div></div>';
+    var href=(mapSel===v.id?'#/spot/'+v.id:'#/map');
+    return '<a class="ccard grad'+(mapSel===v.id?' sel':'')+'" data-cid="'+v.id+'" href="'+href+'"><div class="bn">'+esc(v.name)+'</div>'+(m?metaRow(v,k,st?'<span class="dot">·</span><span class="loc">'+esc(st.win)+'</span>':''):'')+(deal?'<div class="ldeal">'+esc(deal)+'</div>':'')+'<div class="cfoot"><span class="cdist">'+dist+'</span><div class="cfr">'+badges+status+'</div></div></a>'}).join('')||'<div class="ccard grad"><div class="bn">No spots match</div><div class="cfoot"><span class="cdist">Try another filter</span></div></div>';
 }
 function selectOnMap(id,pan){mapSel=id;var v=DATA[id];if(pan&&v&&v.lat!=null)map.setView([v.lat,v.lng],Math.max(map.getZoom(),15));drawMap(false);var el=document.querySelector('[data-cid="'+id+'"]');if(el)el.scrollIntoView({behavior:'smooth',block:'nearest',inline:'nearest'})}
 
