@@ -223,9 +223,12 @@ function drawCarousel(vis){
     if(it)deal=(fmtPrice(it)?fmtPrice(it)+' ':'')+it.name;
     else if(v.f1&&v.f1.prices)deal=v.f1.prices;
     else if(k&&v[k]){var dl=k==='br'?(v.br.spec||v.br.bname):v[k].deals;if(present(dl)){deal=String(dl).split(/[;|]/)[0].trim();if(deal.length>72)deal=deal.slice(0,69)+'…'}}
-    return '<a class="ccard grad'+(mapSel===v.id?' sel':'')+'" data-cid="'+v.id+'" href="#/spot/'+v.id+'"><div class="bn">'+esc(v.name)+'</div>'+(m?metaRow(v,k,st?'<span class="dot">·</span><span class="loc">'+esc(st.win)+'</span>':''):'')+'<div class="row">'+(st&&st.bucket==='live'?'<span class="livep"><i></i>LIVE</span>':st?'<span class="endp">'+esc(st.bucket==='soon'?'in '+st.startsIn:'at '+st.startsAt)+'</span>':'<span style="color:#5C5C64">Not on now</span>')+'<span>'+(x.d!=null&&origin()?fmtMi(x.d,v):esc(street(v.addr)))+'</span>'+(mapF==='f1'&&v.f1?'<span class="f1b">F1</span>':'')+(onIK(v)?'<span class="ikb">'+ic('gift')+'inKind</span>':'')+'</div>'+(deal?'<div class="ldeal">'+esc(deal)+'</div>':'')+'</a>'}).join('')||'<div class="ccard grad"><div class="bn">No spots match</div><div class="row">Try another filter</div></div>';
+    var status=(st&&st.bucket==='live'?'<span class="livep"><i></i>LIVE</span>':st?'<span class="endp">'+esc(st.bucket==='soon'?'in '+st.startsIn:'at '+st.startsAt)+'</span>':'<span style="color:#5C5C64">Not on now</span>');
+    var dist=(x.d!=null&&origin()?fmtMi(x.d,v):esc(street(v.addr)));
+    var badges=(mapF==='f1'&&v.f1?'<span class="f1b">F1</span>':'')+(onIK(v)?'<span class="ikb">'+ic('gift')+'inKind</span>':'');
+    return '<a class="ccard grad'+(mapSel===v.id?' sel':'')+'" data-cid="'+v.id+'" href="#/spot/'+v.id+'"><div class="bn">'+esc(v.name)+'</div>'+(m?metaRow(v,k,st?'<span class="dot">·</span><span class="loc">'+esc(st.win)+'</span>':''):'')+(deal?'<div class="ldeal">'+esc(deal)+'</div>':'')+'<div class="cfoot"><span class="cdist">'+dist+'</span><div class="cfr">'+badges+status+'</div></div></a>'}).join('')||'<div class="ccard grad"><div class="bn">No spots match</div><div class="cfoot"><span class="cdist">Try another filter</span></div></div>';
 }
-function selectOnMap(id,pan){mapSel=id;var v=DATA[id];if(pan)map.panTo([v.lat,v.lng]);drawMap(false);var el=document.querySelector('[data-cid="'+id+'"]');if(el)el.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'})}
+function selectOnMap(id,pan){mapSel=id;var v=DATA[id];if(pan)map.panTo([v.lat,v.lng]);drawMap(false);var el=document.querySelector('[data-cid="'+id+'"]');if(el)el.scrollIntoView({behavior:'smooth',block:'nearest',inline:'nearest'})}
 
 /* ---------- DETAIL ---------- */
 var PHOTOS=null,photosP=null;

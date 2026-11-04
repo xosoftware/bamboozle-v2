@@ -38,7 +38,7 @@ svg{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-lin
 .meta svg{width:13px;height:13px;flex:none}
 .meta .loc{color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dot{color:var(--t3)}
-.ldeal{font-size:12px;color:var(--t2);margin-top:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ldeal{font-size:12px;color:#9a9aa0;margin-top:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pills{display:flex;gap:8px;margin-top:16px;align-items:center;flex-wrap:wrap}
 .livep{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:4px 10px;background:rgba(45,212,191,.15);color:var(--live);font-size:10px;font-weight:700;letter-spacing:1px}
 .livep i{width:7px;height:7px;border-radius:9px;background:var(--live)}
@@ -111,13 +111,18 @@ svg{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-lin
 .mapover .chips{padding:0 16px 8px}
 .mapover .chip{background:rgba(37,37,41,.9)}
 .mapover .chip.on{background:var(--primary)}
-.locbtn{position:absolute;right:16px;bottom:200px;z-index:500;width:44px;height:44px;border-radius:22px;border:1px solid var(--b);display:flex;align-items:center;justify-content:center;color:var(--primary)}
+.locbtn{position:absolute;right:16px;bottom:calc(50vh + 16px);z-index:500;width:44px;height:44px;border-radius:22px;border:1px solid var(--b);display:flex;align-items:center;justify-content:center;color:var(--primary)}
 .locbtn svg{width:20px;height:20px}
-.carousel{position:absolute;left:0;right:0;bottom:12px;z-index:500;display:flex;gap:12px;overflow-x:auto;padding:0 16px;scroll-snap-type:x mandatory;scrollbar-width:none}
+.carousel{position:absolute;left:0;right:0;bottom:10px;top:50vh;z-index:500;display:flex;flex-direction:row;flex-wrap:wrap;justify-content:flex-start;align-items:flex-start;align-content:flex-start;gap:10px;overflow-x:hidden;overflow-y:auto;padding:10px;scroll-snap-type:y proximity;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .carousel::-webkit-scrollbar{display:none}
-.ccard{flex:none;width:78vw;max-width:320px;scroll-snap-align:center;padding:14px 16px;background:rgba(26,26,30,.95)}
+.ccard{flex:none;width:calc(50% - 5px);max-width:none;scroll-snap-align:start;padding:12px;background:rgba(26,26,30,.95);display:flex;flex-direction:column;min-height:0;box-sizing:border-box}
 .ccard.sel{border-color:var(--primary)}
-.ccard .bn{font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ccard .bn{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ccard .meta{margin-top:4px}
+.ccard .ldeal{flex:1;min-height:1.2em}
+.ccard .cfoot{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:10px;padding-top:8px;border-top:1px solid var(--b)}
+.ccard .cdist{font-size:12px;font-weight:500;color:var(--t2);white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.ccard .cfr{display:flex;align-items:center;gap:6px;flex:none}
 .ccard .row{display:flex;gap:8px;align-items:center;margin-top:10px;font-size:12px;color:var(--t2)}
 .pin{width:16px;height:16px;border-radius:8px;background:#6b6b73;border:2px solid #0D0D0F;box-shadow:0 0 0 1px #6b6b73}
 .pin.on{background:var(--primary);box-shadow:0 0 0 1px var(--primary),0 0 10px rgba(232,163,23,.7)}
