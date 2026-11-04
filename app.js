@@ -186,9 +186,10 @@ function searchResults(){
     var M=MENUS&&MENUS[v.id];if(M)['f','d'].forEach(function(t){(M[t]||[]).forEach(function(s){s[1].forEach(function(it){if(re.test(it[0]))hits.push([it[0],it[1]!=null?'$'+it[1]:'','menu'])})})});
     if(hits.length)score+=5;if(score)res.push({v:v,score:score,hits:hits,d:miles(o,v)});
   });
+  var itemMode=res.some(function(x){return x.hits.length});if(itemMode)res=res.filter(function(x){return x.hits.length});
   res.sort(function(a,b){return b.score-a.score||(a.d==null?1e9:a.d)-(b.d==null?1e9:b.d)});
   var h='<div class="hint">'+res.length+' result'+(res.length===1?'':'s')+(MENUS?'':' · loading full menus…')+'</div><div class="pad">';
-  res.slice(0,sLimit).forEach(function(x){var hh='';if(x.hits.length){var f=x.hits[0];hh='<div class="hit"><span class="hn">'+(f[2]==='menu'?'On menu: ':'Deal: ')+esc(f[0])+(x.hits.length>1?' <em>· +'+(x.hits.length-1)+' more</em>':'')+'</span>'+(f[1]?'<b class="hp">'+esc(f[1])+'</b>':'')+'</div>'}h+=dealCard(x.v,null,hh)});
+  res.slice(0,sLimit).forEach(function(x){if(itemMode){var seen={},mt=[];x.hits.forEach(function(f){var key=f[0].toLowerCase();if(seen[key])return;seen[key]=1;mt.push({name:f[0],range:f[1]||null,price:f[1]?0:null})});mt.sort(function(p,q){var a=p.range?parseFloat(String(p.range).replace(/[^\d.]/g,''))||0:1e9,b=q.range?parseFloat(String(q.range).replace(/[^\d.]/g,''))||0:1e9;return a-b});h+=dealCard(x.v,null,'',mt);return}var hh='';if(x.hits.length){var f=x.hits[0];hh='<div class="hit"><span class="hn">'+(f[2]==='menu'?'On menu: ':'Deal: ')+esc(f[0])+(x.hits.length>1?' <em>· +'+(x.hits.length-1)+' more</em>':'')+'</span>'+(f[1]?'<b class="hp">'+esc(f[1])+'</b>':'')+'</div>'}h+=dealCard(x.v,null,hh)});
   if(res.length>sLimit)h+='<button class="btn ghost loadmore" id="smore">Show more ('+(res.length-sLimit)+')</button>';
   if(!res.length)h+=empty('search','No results','Try a different search term');
   box.innerHTML=h+'</div>';if($('smore'))$('smore').onclick=function(){sLimit+=40;searchResults()};
