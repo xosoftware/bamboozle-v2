@@ -190,14 +190,14 @@ function searchResults(){
 }
 
 /* ---------- MAP (Explorer: floating glass search + chips, gold live pins / gray others, bottom carousel) ---------- */
-var map=null,mapLayer=null,mapF='live',mapQ='',mapSel=null,meMarker=null,mapEl=null;
+var map=null,mapLayer=null,mapF='live',mapQ='',mapSel=null,meMarker=null,mapEl=null,selLine=null;
 var MAP_CHIPS=[['live','Live now'],['all','All'],['f1','F1 Watch'],['hh','Happy Hour'],['br','Brunch'],['ln','Late Night'],['ik','inKind']];
 function mapVisible(){var re=mapQ.trim()?new RegExp(reEsc(mapQ.trim()),'i'):null;return DATA.filter(function(v){
   if(v.lat==null)return false;if(mapF==='live'){if(!venueStatus(v)||venueStatus(v).bucket!=='live')return false}else if(mapF==='ik'){if(!onIK(v))return false}else if(mapF==='f1'){if(!v.f1)return false}else if(mapF==='all'){if(!KS.some(function(k){return v[k]})&&!onIK(v))return false}else if(!v[mapF])return false;
   if(re&&!re.test(v.name)&&!re.test(v.loc||'')&&!(v.items||[]).some(function(i){return re.test(i.name)}))return false;return true})}
 function renderMap(){
   view.innerHTML='<div class="mapwrap"><div id="mapc" style="position:absolute;inset:0"></div><div class="mapover"><label class="sbox glass">'+ic('search')+'<input id="mq" type="search" placeholder="Search the map" autocomplete="off" value="'+esc(mapQ)+'"></label>'+chipsHtml(MAP_CHIPS,mapF,'mf')+'</div><button class="locbtn glass" id="loc" aria-label="Center on me">'+ic('loc')+'</button><div class="carousel" id="car"></div></div>';
-  if(!mapEl){mapEl=document.createElement('div');mapEl.id='map';$('mapc').appendChild(mapEl);map=L.map(mapEl,{zoomControl:false,attributionControl:true}).setView(STRIP,12);map.on('moveend',function(){if(!origin()&&location.hash.indexOf('#/map')===0)drawCarousel(mapVisible())});
+  if(!mapEl){mapEl=document.createElement('div');mapEl.id='map';$('mapc').appendChild(mapEl);map=L.map(mapEl,{zoomControl:false,attributionControl:true}).setView(STRIP,12);map.on('zoomend',function(){if(selLine)drawSelLine()});map.on('moveend',function(){if(!origin()&&location.hash.indexOf('#/map')===0)drawCarousel(mapVisible())});
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,className:'darktiles',attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map)}
   if(mapEl.parentNode!==$('mapc'))$('mapc').appendChild(mapEl);map.invalidateSize();
   bindChips('mf',function(v){mapF=v;view.querySelectorAll('[data-mf]').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-mf')===v)});drawMap(true)});
@@ -207,13 +207,14 @@ function renderMap(){
   drawMe();drawMap(true);
 }
 function drawMe(){var o=origin();if(meMarker){map.removeLayer(meMarker);meMarker=null}if(o)meMarker=L.marker(o,{icon:L.divIcon({className:'',html:'<div class="me-dot"></div>',iconSize:[14,14],iconAnchor:[7,7]}),interactive:false}).addTo(map)}
+function drawSelLine(){if(!map)return;if(selLine){map.removeLayer(selLine);selLine=null}var o=origin(),v=mapSel!=null?DATA[mapSel]:null;if(!o||!v||v.lat==null)return;var a=map.latLngToLayerPoint(o),b=map.latLngToLayerPoint([v.lat,v.lng]),dx=b.x-a.x,dy=b.y-a.y,k=.18,cx=(a.x+b.x)/2-dy*k,cy=(a.y+b.y)/2+dx*k,pts=[];for(var i=0;i<=32;i++){var t=i/32,u=1-t;pts.push(map.layerPointToLatLng(L.point(u*u*a.x+2*u*t*cx+t*t*b.x,u*u*a.y+2*u*t*cy+t*t*b.y)))}var col=(getComputedStyle(document.documentElement).getPropertyValue('--primary')||'').trim()||'#E8A317';selLine=L.polyline(pts,{color:col,weight:3,opacity:.9,dashArray:'2 8',lineCap:'round',interactive:false,className:'selline'}).addTo(map)}
 function drawMap(fit){
   var vis=mapVisible();if(mapLayer)map.removeLayer(mapLayer);
   mapLayer=L.markerClusterGroup({showCoverageOnHover:false,maxClusterRadius:40,disableClusteringAtZoom:15});
   vis.forEach(function(v){var st=venueStatus(v),on=st&&st.bucket==='live';var mk=L.marker([v.lat,v.lng],{icon:L.divIcon({className:'',html:'<div class="pin'+(on?' on':'')+(mapSel===v.id?' sel':'')+'"></div>',iconSize:[16,16],iconAnchor:[8,8]}),title:v.name});mk.on('click',function(){selectOnMap(v.id,true)});mapLayer.addLayer(mk)});
   map.addLayer(mapLayer);
   if(fit&&vis.length){var o=origin();if(o&&mapF!=='all')map.setView(o,13);else map.fitBounds(L.latLngBounds(vis.map(function(v){return [v.lat,v.lng]})),{padding:[40,40],maxZoom:14})}
-  drawCarousel(vis);
+  drawSelLine();drawCarousel(vis);
 }
 function drawCarousel(vis){
   var c=$('car');if(!c)return;
