@@ -250,3 +250,4 @@ body.noscroll{overflow:hidden}
 #view .pad:has(+.sortfab){padding-bottom:72px}
 
 .mapover .ichips .chip{padding:6px 12px;font-size:12px}
+.frow .faddr{margin-top:3px;color:var(--t2)}.frow .faddr+.meta{margin-top:4px}

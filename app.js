@@ -130,8 +130,9 @@ var nowLimit={};
 function feedRow(x){
   var v=x.v,s=x.s,m=META[s.k],it=headline(v,s.k)[0],live=s.bucket==='live',sp=(s.startsAt||'').split(' ');
   var times=v[s.k]&&present(v[s.k].times)?ft(String(v[s.k].times).split(' | ')[0]):'';
-  var extra=(street(v.addr)?'<span class="dot">·</span><span class="loc">'+esc(street(v.addr))+'</span>':'')+(x.d!=null?'<span class="dot">·</span><span class="loc" style="flex:none">'+fmtMi(x.d,v)+'</span>':'');
-  return '<a class="frow grad" href="#/spot/'+v.id+'"><div class="main"><div class="bn">'+esc(v.name)+'</div>'+metaRow(v,s.k,extra)+(it?'<span class="dchip">'+esc((fmtPrice(it)?fmtPrice(it)+' ':'')+it.name)+'</span>':'')+(onIK(v)?'<div style="margin-top:8px"><span class="ikb">'+ic('gift')+'inKind</span></div>':'')+'</div><div class="vdiv"></div><div class="tcol">'+
+  var mp=[];if(street(v.addr))mp.push('<span class="loc">'+esc(street(v.addr))+'</span>');if(x.d!=null)mp.push('<span class="loc" style="flex:none">'+fmtMi(x.d,v)+'</span>');
+  var addr=mp.length?'<div class="meta faddr">'+mp.join('<span class="dot">·</span>')+'</div>':'';
+  return '<a class="frow grad" href="#/spot/'+v.id+'"><div class="main"><div class="bn">'+esc(v.name)+'</div>'+addr+metaRow(v,s.k)+(it?'<span class="dchip">'+esc((fmtPrice(it)?fmtPrice(it)+' ':'')+it.name)+'</span>':'')+(onIK(v)?'<div style="margin-top:8px"><span class="ikb">'+ic('gift')+'inKind</span></div>':'')+'</div><div class="vdiv"></div><div class="tcol">'+
    (live?'<span class="livep"><i></i>LIVE</span><div class="left">'+esc(s.endsIn)+' left</div>':ic('clock')+'<div class="h">'+esc(sp[0])+'</div><div class="p">'+esc(sp[1]||'')+'</div>')+
    '<div class="tt">'+esc(s.win)+'</div></div></a>';
 }
