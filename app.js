@@ -238,7 +238,7 @@ function drawCarousel(vis){
     var win=st?st.win:(k&&v[k]&&present(v[k].times)?String(v[k].times).split(' | ')[0]:'');
     return '<a class="ccard grad'+(mapSel===v.id?' sel':'')+'" data-cid="'+v.id+'" href="'+href+'"><div class="bn">'+esc(v.name)+'</div>'+(m?metaRow(v,k,win?'<span class="dot">·</span><span class="loc">'+esc(win)+'</span>':''):(mapF==='f1'&&v.f1?'<div class="meta" style="color:var(--primary)"><span class="f1b">F1</span><span>'+esc(v.f1.event||'F1 package')+'</span></div>':''))+dealHtml+'<div class="cfoot"><span class="cdist">'+dist+'</span><div class="cfr">'+badges+status+'</div></div></a>'}).join('')||'<div class="ccard grad"><div class="bn">No spots match</div><div class="cfoot"><span class="cdist">Try another filter</span></div></div>';
 }
-function selectOnMap(id,pan){mapSel=id;var v=DATA[id];if(pan&&v&&v.lat!=null)map.setView([v.lat,v.lng],Math.max(map.getZoom(),15));drawMap(false);var car=$('car');if(car)car.scrollTop=0;var el=document.querySelector('[data-cid="'+id+'"]');if(el)el.scrollIntoView({behavior:'smooth',block:'nearest',inline:'nearest'})}
+function selectOnMap(id,pan){mapSel=id;var v=DATA[id];if(pan&&v&&v.lat!=null){var o=origin(),car=$('car'),ch=car?car.getBoundingClientRect().height:0;if(o)map.fitBounds(L.latLngBounds([o,[v.lat,v.lng]]),{paddingTopLeft:[48,140],paddingBottomRight:[48,Math.min(ch,map.getSize().y*.55)+40],maxZoom:16});else map.setView([v.lat,v.lng],Math.max(map.getZoom(),15))}drawMap(false);var car=$('car');if(car)car.scrollTop=0;var el=document.querySelector('[data-cid="'+id+'"]');if(el)el.scrollIntoView({behavior:'smooth',block:'nearest',inline:'nearest'})}
 
 /* ---------- DETAIL ---------- */
 var PHOTOS=null,photosP=null;
