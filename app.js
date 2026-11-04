@@ -131,12 +131,13 @@ function dealBullets(v,k,bullets){if(k&&v[k]){var dl=k==='br'?(v.br.spec||v.br.b
 function feedRow(x){
   var v=x.v,s=x.s,m=META[s.k],it=headline(v,s.k)[0],live=s.bucket==='live',sp=(s.startsAt||'').split(' ');
   var times=v[s.k]&&present(v[s.k].times)?ft(String(v[s.k].times).split(' | ')[0]):'';
-  var extra=(street(v.addr)?'<span class="dot">·</span><span class="loc">'+esc(street(v.addr))+'</span>':'')+(x.d!=null?'<span class="dot">·</span><span class="loc" style="flex:none">'+fmtMi(x.d,v)+'</span>':'');
+  var mp=[];if(street(v.addr))mp.push('<span class="loc">'+esc(street(v.addr))+'</span>');if(x.d!=null)mp.push('<span class="loc" style="flex:none">'+fmtMi(x.d,v)+'</span>');
+  var meta=mp.length?'<div class="meta">'+mp.join('<span class="dot">·</span>')+'</div>':'';
   var foot='<div class="foot"><div class="fl"><span class="ty" style="color:'+m.color+'">'+ic(m.icon)+m.label+'</span>'+(times?'<span>'+ic('clock')+esc(times)+'</span>':'')+(x.d!=null?'<span>'+ic('pin')+fmtMi(x.d,v)+'</span>':'')+'</div><div class="fr">'+(onIK(v)?'<span class="ikb">'+ic('gift')+'inKind</span>':'')+'</div></div>';
   var bl=headline(v,s.k).slice(0,3).map(function(i){return {n:i.name,p:fmtPrice(i)}});if(!bl.length)dealBullets(v,s.k,bl);bl=bl.slice(0,3);
   var hi=safeUrl(v.ikimg);
   var tc=live?'<span class="livep"><i></i>LIVE</span><span class="hl">'+esc(s.endsIn)+' left</span>':'<span class="hl">'+ic('clock')+esc(s.startsAt||'')+'</span>';
-  return '<a class="frow hs grad" href="#/spot/'+v.id+'"><div class="hsimg'+(hi?'':' nop')+'"'+(hi?' style="background-image:url(\''+esc(hi)+'\')"':'')+'><div class="hstc">'+tc+'</div><div class="hsbn"><div class="bn">'+esc(v.name)+'</div>'+metaRow(v,s.k,extra)+'</div></div>'+
+  return '<a class="frow hs grad" href="#/spot/'+v.id+'"><div class="hsimg'+(hi?'':' nop')+'"'+(hi?' style="background-image:url(\''+esc(hi)+'\')"':'')+'><div class="hstc">'+tc+'</div><div class="hsbn"><div class="bn">'+esc(v.name)+'</div>'+meta+'</div></div>'+
    (bl.length?'<ul class="cdeals hsd">'+bl.map(function(b){return '<li><span class="nm">'+esc(b.n)+'</span>'+(b.p?'<span class="pr">'+esc(b.p)+'</span>':'')+'</li>'}).join('')+'</ul>':'')+foot+'</a>';
 }
 function bindChips(attr,fn){view.querySelectorAll('[data-'+attr+']').forEach(function(b){b.onclick=function(){fn(b.getAttribute('data-'+attr))}})}
