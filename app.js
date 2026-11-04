@@ -224,7 +224,7 @@ function drawCarousel(vis){
     if(it)deal=(fmtPrice(it)?fmtPrice(it)+' ':'')+it.name;
     else if(v.f1&&v.f1.prices)deal=v.f1.prices;
     else if(k&&v[k]){var dl=k==='br'?(v.br.spec||v.br.bname):v[k].deals;if(present(dl)){deal=String(dl).split(/[;|]/)[0].trim();if(deal.length>72)deal=deal.slice(0,69)+'…'}}
-    var status=(st&&st.bucket==='live'?'<span class="livep"><i></i>LIVE</span>':st?'<span class="endp">'+esc(st.bucket==='soon'?'in '+st.startsIn:'at '+st.startsAt)+'</span>':'<span style="color:#5C5C64">Not on now</span>');
+    var status=(st&&st.bucket==='live'?'<span class="livep"><i></i>LIVE</span>':st?'<span class="endp">'+esc(st.bucket==='soon'?'in '+st.startsIn:'at '+st.startsAt)+'</span>':'');
     var dist=(x.d!=null&&origin()?fmtMi(x.d,v):esc(street(v.addr)));
     var badges=(mapF==='f1'&&v.f1?'<span class="f1b">F1</span>':'')+(onIK(v)?'<span class="ikb">'+ic('gift')+'inKind</span>':'');
     var href=(mapSel===v.id?'#/spot/'+v.id:'#/map');
