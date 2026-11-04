@@ -131,9 +131,10 @@ function feedRow(x){
   var v=x.v,s=x.s,m=META[s.k],it=headline(v,s.k)[0],live=s.bucket==='live',sp=(s.startsAt||'').split(' ');
   var times=v[s.k]&&present(v[s.k].times)?ft(String(v[s.k].times).split(' | ')[0]):'';
   var extra=(street(v.addr)?'<span class="dot">·</span><span class="loc">'+esc(street(v.addr))+'</span>':'')+(x.d!=null?'<span class="dot">·</span><span class="loc" style="flex:none">'+fmtMi(x.d,v)+'</span>':'');
-  return '<a class="frow grad" href="#/spot/'+v.id+'"><div class="main"><div class="bn">'+esc(v.name)+'</div>'+metaRow(v,s.k,extra)+(it?'<span class="dchip">'+esc((fmtPrice(it)?fmtPrice(it)+' ':'')+it.name)+'</span>':'')+(onIK(v)?'<div style="margin-top:8px"><span class="ikb">'+ic('gift')+'inKind</span></div>':'')+'</div><div class="vdiv"></div><div class="tcol">'+
+  var foot='<div class="foot"><div class="fl"><span class="ty" style="color:'+m.color+'">'+ic(m.icon)+m.label+'</span>'+(times?'<span>'+ic('clock')+esc(times)+'</span>':'')+(x.d!=null?'<span>'+ic('pin')+fmtMi(x.d,v)+'</span>':'')+'</div><div class="fr">'+(onIK(v)?'<span class="ikb">'+ic('gift')+'inKind</span>':'')+'</div></div>';
+  return '<a class="frow grad" href="#/spot/'+v.id+'"><div class="frtop"><div class="main"><div class="bn">'+esc(v.name)+'</div>'+metaRow(v,s.k,extra)+(it?'<span class="dchip">'+esc((fmtPrice(it)?fmtPrice(it)+' ':'')+it.name)+'</span>':'')+'</div><div class="vdiv"></div><div class="tcol">'+
    (live?'<span class="livep"><i></i>LIVE</span><div class="left">'+esc(s.endsIn)+' left</div>':ic('clock')+'<div class="h">'+esc(sp[0])+'</div><div class="p">'+esc(sp[1]||'')+'</div>')+
-   '<div class="tt">'+esc(s.win)+'</div></div></a>';
+   '<div class="tt">'+esc(s.win)+'</div></div></div>'+foot+'</a>';
 }
 function bindChips(attr,fn){view.querySelectorAll('[data-'+attr+']').forEach(function(b){b.onclick=function(){fn(b.getAttribute('data-'+attr))}})}
 
