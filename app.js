@@ -203,6 +203,7 @@ function renderMap(){
   bindChips('mf',function(v){mapF=v;view.querySelectorAll('[data-mf]').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-mf')===v)});drawMap(true)});
   $('mq').oninput=function(){mapQ=this.value;drawMap(false)};
   $('loc').onclick=function(){locate(function(p){if(p){map.setView(p,14);drawMe();drawMap(false)}},true)};
+  $('car').onclick=function(e){var a=e.target.closest('a.ccard[data-cid]');if(!a)return;var id=+a.getAttribute('data-cid');if(mapSel===id)return;e.preventDefault();selectOnMap(id,true)};
   drawMe();drawMap(true);
 }
 function drawMe(){var o=origin();if(meMarker){map.removeLayer(meMarker);meMarker=null}if(o)meMarker=L.marker(o,{icon:L.divIcon({className:'',html:'<div class="me-dot"></div>',iconSize:[14,14],iconAnchor:[7,7]}),interactive:false}).addTo(map)}
@@ -228,7 +229,7 @@ function drawCarousel(vis){
     var badges=(mapF==='f1'&&v.f1?'<span class="f1b">F1</span>':'')+(onIK(v)?'<span class="ikb">'+ic('gift')+'inKind</span>':'');
     return '<a class="ccard grad'+(mapSel===v.id?' sel':'')+'" data-cid="'+v.id+'" href="#/spot/'+v.id+'"><div class="bn">'+esc(v.name)+'</div>'+(m?metaRow(v,k,st?'<span class="dot">·</span><span class="loc">'+esc(st.win)+'</span>':''):'')+(deal?'<div class="ldeal">'+esc(deal)+'</div>':'')+'<div class="cfoot"><span class="cdist">'+dist+'</span><div class="cfr">'+badges+status+'</div></div></a>'}).join('')||'<div class="ccard grad"><div class="bn">No spots match</div><div class="cfoot"><span class="cdist">Try another filter</span></div></div>';
 }
-function selectOnMap(id,pan){mapSel=id;var v=DATA[id];if(pan)map.panTo([v.lat,v.lng]);drawMap(false);var el=document.querySelector('[data-cid="'+id+'"]');if(el)el.scrollIntoView({behavior:'smooth',block:'nearest',inline:'nearest'})}
+function selectOnMap(id,pan){mapSel=id;var v=DATA[id];if(pan&&v&&v.lat!=null)map.setView([v.lat,v.lng],Math.max(map.getZoom(),15));drawMap(false);var el=document.querySelector('[data-cid="'+id+'"]');if(el)el.scrollIntoView({behavior:'smooth',block:'nearest',inline:'nearest'})}
 
 /* ---------- DETAIL ---------- */
 var PHOTOS=null,photosP=null;
