@@ -216,21 +216,24 @@ function drawMap(fit){
   drawCarousel(vis);
 }
 function drawCarousel(vis){
-  var c=$('car');if(!c)return;var ref=origin()||[map.getCenter().lat,map.getCenter().lng];
-  var arr=vis.map(function(v){return {v:v,d:miles(ref,v)}}).sort(function(a,b){return a.d-b.d}).slice(0,25);
-  if(mapSel!=null&&!arr.some(function(x){return x.v.id===mapSel})){var sv=DATA[mapSel];if(vis.indexOf(sv)>=0)arr.unshift({v:sv,d:miles(ref,sv)})}
+  var c=$('car');if(!c)return;
+  var sel=mapSel!=null?DATA[mapSel]:null;
+  var ref=(sel&&sel.lat!=null)?[sel.lat,sel.lng]:(origin()||[map.getCenter().lat,map.getCenter().lng]);
+  var arr=vis.map(function(v){return {v:v,d:miles(ref,v)}}).sort(function(a,b){return (a.d==null?1e9:a.d)-(b.d==null?1e9:b.d)});
+  if(sel&&vis.indexOf(sel)>=0){arr=arr.filter(function(x){return x.v.id!==mapSel});arr.unshift({v:sel,d:0});}
+  arr=arr.slice(0,25);
   c.innerHTML=arr.map(function(x){var v=x.v,st=venueStatus(v),k=st?st.k:primaryK(v),m=META[k];
     var its=k?headline(v,k):[],it=its.find(function(i){return i.price!=null})||its[0],deal='';
     if(it)deal=(fmtPrice(it)?fmtPrice(it)+' ':'')+it.name;
     else if(v.f1&&v.f1.prices)deal=v.f1.prices;
     else if(k&&v[k]){var dl=k==='br'?(v.br.spec||v.br.bname):v[k].deals;if(present(dl)){deal=String(dl).split(/[;|]/)[0].trim();if(deal.length>72)deal=deal.slice(0,69)+'…'}}
     var status=(st&&st.bucket==='live'?'<span class="livep"><i></i>LIVE</span>':st?'<span class="endp">'+esc(st.bucket==='soon'?'in '+st.startsIn:'at '+st.startsAt)+'</span>':'');
-    var dist=(x.d!=null&&origin()?fmtMi(x.d,v):esc(street(v.addr)));
+    var dist=(mapSel===v.id?'Selected':(x.d!=null?fmtMi(x.d,v):esc(street(v.addr))));
     var badges=(mapF==='f1'&&v.f1?'<span class="f1b">F1</span>':'')+(onIK(v)?'<span class="ikb">'+ic('gift')+'inKind</span>':'');
     var href=(mapSel===v.id?'#/spot/'+v.id:'#/map');
     return '<a class="ccard grad'+(mapSel===v.id?' sel':'')+'" data-cid="'+v.id+'" href="'+href+'"><div class="bn">'+esc(v.name)+'</div>'+(m?metaRow(v,k,st?'<span class="dot">·</span><span class="loc">'+esc(st.win)+'</span>':''):'')+(deal?'<div class="ldeal">'+esc(deal)+'</div>':'')+'<div class="cfoot"><span class="cdist">'+dist+'</span><div class="cfr">'+badges+status+'</div></div></a>'}).join('')||'<div class="ccard grad"><div class="bn">No spots match</div><div class="cfoot"><span class="cdist">Try another filter</span></div></div>';
 }
-function selectOnMap(id,pan){mapSel=id;var v=DATA[id];if(pan&&v&&v.lat!=null)map.setView([v.lat,v.lng],Math.max(map.getZoom(),15));drawMap(false);var el=document.querySelector('[data-cid="'+id+'"]');if(el)el.scrollIntoView({behavior:'smooth',block:'nearest',inline:'nearest'})}
+function selectOnMap(id,pan){mapSel=id;var v=DATA[id];if(pan&&v&&v.lat!=null)map.setView([v.lat,v.lng],Math.max(map.getZoom(),15));drawMap(false);var car=$('car');if(car)car.scrollTop=0;var el=document.querySelector('[data-cid="'+id+'"]');if(el)el.scrollIntoView({behavior:'smooth',block:'nearest',inline:'nearest'})}
 
 /* ---------- DETAIL ---------- */
 var PHOTOS=null,photosP=null;
