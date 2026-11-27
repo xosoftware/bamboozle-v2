@@ -282,8 +282,6 @@ function renderDetail(id){
     h+='<div class="card grad"><h4 style="color:'+m.color+'">'+ic(m.icon)+m.label+(s&&s.bucket==='live'?' <span class="livep" style="margin-left:auto"><i></i>LIVE</span>':'')+'</h4><div class="tm">'+esc([present(c.days)?c.days:'',present(c.times)?ft(c.times):''].filter(Boolean).join(' · ')||'Times not listed')+'</div>'+(present(dl)?'<p>'+esc(dl)+'</p>':'')+'</div>'});
   h+='<div id="menublock"></div>';
   if(v.ik)h+='<div class="card grad badge-ik"><div class="gi">'+ic('gift')+'</div><div style="flex:1"><h4>'+(onIK(v)?'On inKind':'Possibly on inKind')+'</h4><div class="tm">'+(onIK(v)?'Pay with inKind credit for bonus value.':'Unclear match — check the app.')+'</div><a class="src" href="'+INKIND_URL+'" target="_blank" rel="noopener">Open inKind (referral link)</a></div></div>';
-  var notes=KS.map(function(k){return v[k]&&present(v[k].notes)?v[k].notes:''}).filter(Boolean);
-  if(notes.length)h+='<p class="note" style="margin:16px 20px 0">'+esc(notes[0])+'</p>';
   view.innerHTML=h;scrollTo(0,0);
   $('dback').onclick=function(){if(history.length>1)history.back();else location.hash='#/now'};
   $('dsave').onclick=function(){toggleSave(v);this.classList.toggle('on',isSaved(v))};
