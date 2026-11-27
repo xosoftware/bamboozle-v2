@@ -106,24 +106,34 @@ function dealCard(v,k,hitHtml,mt){
 }
 
 /* ---------- NOW (Replit index tab) ---------- */
-var nowFilter='all';
+var nowFilter=null,nowIk=false;
+/* Brunch before 3:00 PM Vegas time; Happy Hour from 3:00 PM on. Late Night is not auto-selected. */
+function defaultNowFilter(){return vegasNow().min<15*60?'br':'hh'}
+function nowChipsHtml(){
+  return '<div class="chips nowchips" role="tablist">'+TYPE_CHIPS.map(function(c){
+    return '<button class="chip'+(c[0]===nowFilter?' on':'')+'" data-nf="'+c[0]+'" role="tab" aria-selected="'+(c[0]===nowFilter)+'">'+esc(c[1])+'</button>';
+  }).join('')+'<button class="chip'+(nowIk?' on':'')+'" data-nik="ik" type="button" aria-pressed="'+!!nowIk+'">inKind</button></div>';
+}
 function renderNow(){
+  if(!nowFilter)nowFilter=defaultNowFilter();
   var n=vegasNow(),o=origin(),f=nowFilter==='all'?null:nowFilter;
-  var list=DATA.map(function(v){return {v:v,s:venueStatus(v,f)}}).filter(function(x){return x.s});
+  var list=DATA.map(function(v){return {v:v,s:venueStatus(v,f)}}).filter(function(x){return x.s&&(!nowIk||onIK(x.v))});
   list.forEach(function(x){x.d=miles(o,x.v)});
   list.sort(function(a,b){return (a.d==null?1e9:a.d)-(b.d==null?1e9:b.d)||(b.v.rating||0)-(a.v.rating||0)});
   var L=list.filter(function(x){return x.s.bucket==='live'}),S=list.filter(function(x){return x.s.bucket==='soon'}),T=list.filter(function(x){return x.s.bucket==='later'});
-  var h=header('What’s on right now.')+chipsHtml(TYPE_CHIPS,nowFilter,'nf');
+  var h=header('What’s on right now.')+nowChipsHtml();
   if(L.length){h+='<div class="railh"><b>'+ic('flame')+'Happening Now</b><span>Live</span></div><div class="rail">';
     L.slice(0,12).forEach(function(x){var v=x.v,m=META[x.s.k],it=headline(v,x.s.k)[0];h+='<a class="lcard grad" href="#/spot/'+v.id+'"><div><div class="bn">'+esc(v.name)+'</div><div class="win">'+esc(x.s.win)+'</div>'+metaRow(v,x.s.k)+(it?'<div class="ldeal">'+esc((fmtPrice(it)?fmtPrice(it)+' ':'')+it.name)+'</div>':'')+'</div><div class="pills"><span class="livep"><i></i>LIVE</span><span class="endp">'+ic('flame','width:12px;height:12px')+'ends '+esc(x.s.endsIn)+'</span></div></a>'});
     h+='</div>'}
   h+='<div class="pad">';
   function sect(title,color,arr,id){if(!arr.length)return '';var s='<div class="sech" id="'+id+'"><i style="background:'+color+'"></i>'+title+'<em>'+arr.length+'</em></div>';var lim=nowLimit[id]||25;arr.slice(0,lim).forEach(function(x){s+=feedRow(x)});if(arr.length>lim)s+='<button class="btn ghost loadmore" data-more="'+id+'">Show more ('+(arr.length-lim)+')</button>';return s}
   h+=sect('Live now','#2DD4BF',L,'live')+sect('Starting soon','#E8A317',S,'soon')+sect('Later today','#5C5C64',T,'later');
-  if(!list.length)h+=empty('clock','Nothing happening now','No specials live or starting later today. Check back closer to happy hour.');
+  if(!list.length)h+=empty('clock','Nothing happening now',nowIk?'No inKind specials live or starting later today. Try turning inKind off or check back later.':'No specials live or starting later today. Check back closer to happy hour.');
   h+='</div>';
   view.innerHTML=h;
   bindChips('nf',function(v){nowFilter=v;nowLimit={};renderNow()});
+  var ikb=view.querySelector('[data-nik]');
+  if(ikb)ikb.onclick=function(){nowIk=!nowIk;nowLimit={};renderNow()};
   view.querySelectorAll('[data-more]').forEach(function(b){b.onclick=function(){var id=b.getAttribute('data-more');nowLimit[id]=(nowLimit[id]||25)+50;var y=scrollY;renderNow();scrollTo(0,y)}});
 }
 var nowLimit={};
