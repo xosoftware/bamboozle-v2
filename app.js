@@ -101,7 +101,7 @@ function dealCard(v,k,hitHtml,mt){
   if(shown.length){s+='<ul class="items ditems">';shown.forEach(function(i){var p=fmtPrice(i);s+='<li><span class="nm">'+esc(i.name)+'</span>'+(p?'<span class="pr" style="color:'+m.color+'">'+esc(p)+'</span>':'')+'</li>'});s+='</ul>';if(extra)s+='<div class="more">+'+extra+' more deal'+(extra>1?'s':'')+'</div>'}
   else if(k&&v[k]){var dl=k==='br'?(v.br.spec||v.br.bname):v[k].deals;if(present(dl))s+='<div class="dtext">'+esc(dl)+'</div>'}
   if(hitHtml)s+=hitHtml;
-  s+='</div><div class="foot"><div class="fl">'+(k?'<span class="ty" style="color:'+m.color+'">'+ic(m.icon)+m.label+'</span>':'')+(times?'<span>'+ic('clock')+esc(times)+'</span>':'')+(d!=null?'<span>'+ic('pin')+fmtMi(d,v)+'</span>':'')+'</div><div class="fr">'+(v.f1?'<span class="f1b">F1</span>':'')+(onIK(v)?'<span class="ikb">'+ic('gift')+'inKind</span>':'')+(st&&st.bucket==='live'?'<span class="liveb"><i></i>Live</span>':'')+'</div></div></a>';
+  s+='</div><div class="foot"><div class="fl">'+(k?'<span class="ty" style="color:'+m.color+'">'+ic(m.icon)+m.label+'</span>':'')+(times?'<span>'+ic('clock')+esc(times)+'</span>':'')+(d!=null?'<span>'+ic('pin')+fmtMi(d,v)+'</span>':'')+'</div><div class="fr">'+(onIK(v)?'<span class="ikb">'+ic('gift')+'inKind</span>':'')+(st&&st.bucket==='live'?'<span class="liveb"><i></i>Live</span>':'')+'</div></div></a>';
   return s;
 }
 
@@ -150,11 +150,11 @@ function bindChips(attr,fn){view.querySelectorAll('[data-'+attr+']').forEach(fun
 
 /* ---------- DEALS ---------- */
 var dealF='all',dealSort='distance',dealLimit=30,dealQ='';
-var DEAL_CHIPS=[TYPE_CHIPS[0],['f1','F1 Watch']].concat(TYPE_CHIPS.slice(1),[['ik','inKind'],['saved','Saved']]);
+var DEAL_CHIPS=TYPE_CHIPS.concat([['ik','inKind'],['saved','Saved']]);
 function dealList(){
   var o=origin(),f=dealF;
-  var arr=DATA.filter(function(v){if(f==='ik')return onIK(v);if(f==='f1')return !!v.f1;if(f==='saved')return isSaved(v);if(f==='all')return KS.some(function(k){return v[k]})||onIK(v);return !!v[f]});
-  var k=(f==='all'||f==='ik'||f==='f1'||f==='saved')?null:f;
+  var arr=DATA.filter(function(v){if(f==='ik')return onIK(v);if(f==='saved')return isSaved(v);if(f==='all')return KS.some(function(k){return v[k]})||onIK(v);return !!v[f]});
+  var k=(f==='all'||f==='ik'||f==='saved')?null:f;
   var q=dealQ.trim().toLowerCase();
   function dollarItems(v){var pk=primaryK(v,k);return pk?itemsFor(v,pk).filter(function(i){return i.price!=null}).sort(function(a,b){return (a.price||0)-(b.price||0)}):[]}
   if(!q){arr=arr.map(function(v){var mt=dollarItems(v);return {v:v,d:miles(o,v),p:cheapest(v,k),mt:mt}}).filter(function(x){return x.mt.length})}
@@ -209,9 +209,9 @@ function searchResults(){
 /* ---------- MAP (Explorer: floating glass search + chips, gold live pins / gray others, bottom carousel) ---------- */
 var map=null,mapLayer=null,mapF='live',mapQ='',mapSel=null,mapItem='',meMarker=null,mapEl=null,selLine=null;
 var MAP_ITEMS=['wings','tacos','margarita','oysters','burger','mimosa','sushi','pizza','martini','beer'];
-var MAP_CHIPS=[['live','Live now'],['all','All'],['f1','F1 Watch'],['hh','Happy Hour'],['br','Brunch'],['ln','Late Night'],['ik','inKind']];
+var MAP_CHIPS=[['live','Live now'],['all','All'],['hh','Happy Hour'],['br','Brunch'],['ln','Late Night'],['ik','inKind']];
 function mapVisible(){var re=mapQ.trim()?new RegExp(reEsc(mapQ.trim()),'i'):null;return DATA.filter(function(v){
-  if(v.lat==null)return false;if(mapF==='live'){if(!venueStatus(v)||venueStatus(v).bucket!=='live')return false}else if(mapF==='ik'){if(!onIK(v))return false}else if(mapF==='f1'){if(!v.f1)return false}else if(mapF==='all'){if(!KS.some(function(k){return v[k]})&&!onIK(v))return false}else if(!v[mapF])return false;
+  if(v.lat==null)return false;if(mapF==='live'){if(!venueStatus(v)||venueStatus(v).bucket!=='live')return false}else if(mapF==='ik'){if(!onIK(v))return false}else if(mapF==='all'){if(!KS.some(function(k){return v[k]})&&!onIK(v))return false}else if(!v[mapF])return false;
   if(mapItem){var ir=new RegExp('\\b'+reEsc(mapItem),'i');if(!(v.items||[]).some(function(i){return i.q!=='meta'&&ir.test(i.name)}))return false}
   if(re&&!re.test(v.name)&&!re.test(v.loc||'')&&!(v.items||[]).some(function(i){return re.test(i.name)}))return false;return true})}
 function renderMap(){
@@ -245,19 +245,18 @@ function drawCarousel(vis){
   if(sel&&vis.indexOf(sel)>=0){arr=arr.filter(function(x){return x.v.id!==mapSel});arr.unshift({v:sel,d:0});}
   arr=arr.slice(0,25);
   c.innerHTML=arr.map(function(x){var v=x.v;
-    var k=(mapF==='hh'||mapF==='br'||mapF==='ln')?mapF:(mapF==='f1'||mapF==='ik'?null:(venueStatus(v)?venueStatus(v).k:primaryK(v)));
+    var k=(mapF==='hh'||mapF==='br'||mapF==='ln')?mapF:(mapF==='ik'?null:(venueStatus(v)?venueStatus(v).k:primaryK(v)));
     var st=k?venueStatus(v,k):venueStatus(v);if(!k&&st)k=st.k;var m=k?META[k]:null;
     var bullets=[],its=k?headline(v,k).slice(0,3):[];if(mapItem){var ir2=new RegExp('\\b'+reEsc(mapItem),'i');its=(v.items||[]).filter(function(i){return i.q!=='meta'&&ir2.test(i.name)}).sort(function(a,b){return (a.price==null?1e9:a.price)-(b.price==null?1e9:b.price)}).slice(0,3)}
     if(its.length)its.forEach(function(i){bullets.push({n:i.name,p:fmtPrice(i)})});
-    else if(mapF==='f1'&&v.f1&&v.f1.prices)bullets.push({n:v.f1.prices,p:''});
     else if(k&&v[k]){var dl=k==='br'?(v.br.spec||v.br.bname):v[k].deals;if(present(dl)){String(dl).split(/[;|]/).map(function(s){return s.trim()}).filter(Boolean).slice(0,3).forEach(function(s){var m1=s.match(/^(\$[\d.]+(?:\s*[-–]\s*\$[\d.]+)?|\d+%|½ off|BOGO)\s+(.*)$/i)||s.match(/^(.*?)\s+(\$[\d.]+(?:\s*[-–]\s*\$[\d.]+)?)$/);if(m1&&m1[2]){var a=m1[1],b=m1[2];if(/^\$|\d+%|½|BOGO/i.test(a))bullets.push({n:b,p:a});else bullets.push({n:a,p:b})}else bullets.push({n:s.length>48?s.slice(0,45)+'…':s,p:''})})}}
     var dealHtml=bullets.length?'<ul class="cdeals">'+bullets.map(function(b){return '<li><span class="nm">'+esc(b.n)+'</span>'+(b.p?'<span class="pr">'+esc(b.p)+'</span>':'')+'</li>'}).join('')+'</ul>':'';
     var status=(st&&st.bucket==='live'?'<span class="livep"><i></i>LIVE</span>':st?'<span class="endp">'+esc(st.bucket==='soon'?'in '+st.startsIn:'at '+st.startsAt)+'</span>':'');
     var dist=(mapSel===v.id?'Selected':(x.d!=null?fmtMi(x.d,v):esc(street(v.addr))));
-    var badges=(mapF==='f1'&&v.f1?'<span class="f1b">F1</span>':'')+(onIK(v)?'<span class="ikb">'+ic('gift')+'inKind</span>':'');
+    var badges=(onIK(v)?'<span class="ikb">'+ic('gift')+'inKind</span>':'');
     var href=(mapSel===v.id?'#/spot/'+v.id:'#/map');
     var win=st?st.win:(k&&v[k]&&present(v[k].times)?ft(String(v[k].times).split(' | ')[0]):'');
-    return '<a class="ccard grad'+(mapSel===v.id?' sel':'')+'" data-cid="'+v.id+'" href="'+href+'"><div class="bn">'+esc(v.name)+'</div>'+(m?metaRow(v,k,win?'<span class="dot">·</span><span class="loc">'+esc(win)+'</span>':''):(mapF==='f1'&&v.f1?'<div class="meta" style="color:var(--primary)"><span class="f1b">F1</span><span>'+esc(v.f1.event||'F1 package')+'</span></div>':''))+dealHtml+'<div class="cfoot"><span class="cdist">'+dist+'</span><div class="cfr">'+badges+status+'</div></div></a>'}).join('')||'<div class="ccard grad"><div class="bn">No spots match</div><div class="cfoot"><span class="cdist">Try another filter</span></div></div>';
+    return '<a class="ccard grad'+(mapSel===v.id?' sel':'')+'" data-cid="'+v.id+'" href="'+href+'"><div class="bn">'+esc(v.name)+'</div>'+(m?metaRow(v,k,win?'<span class="dot">·</span><span class="loc">'+esc(win)+'</span>':''):'')+dealHtml+'<div class="cfoot"><span class="cdist">'+dist+'</span><div class="cfr">'+badges+status+'</div></div></a>'}).join('')||'<div class="ccard grad"><div class="bn">No spots match</div><div class="cfoot"><span class="cdist">Try another filter</span></div></div>';
 }
 function selectOnMap(id,pan){mapSel=id;var v=DATA[id];if(pan&&v&&v.lat!=null){var o=origin(),car=$('car'),ch=car?car.getBoundingClientRect().height:0;if(o)map.fitBounds(L.latLngBounds([o,[v.lat,v.lng]]),{paddingTopLeft:[48,140],paddingBottomRight:[48,Math.min(ch,map.getSize().y*.55)+40],maxZoom:16});else map.setView([v.lat,v.lng],Math.max(map.getZoom(),15))}drawMap(false);var car=$('car');if(car)car.scrollTop=0;var el=document.querySelector('[data-cid="'+id+'"]');if(el)el.scrollIntoView({behavior:'smooth',block:'nearest',inline:'nearest'})}
 
@@ -281,7 +280,6 @@ function renderDetail(id){
   if(v.lat!=null)h+='<div class="mini" id="mini"></div>';
   KS.forEach(function(k){var c=v[k];if(!c)return;var m=META[k],s=catStatus(c,vegasNow()),dl=k==='br'?c.spec:c.deals;
     h+='<div class="card grad"><h4 style="color:'+m.color+'">'+ic(m.icon)+m.label+(s&&s.bucket==='live'?' <span class="livep" style="margin-left:auto"><i></i>LIVE</span>':'')+'</h4><div class="tm">'+esc([present(c.days)?c.days:'',present(c.times)?ft(c.times):''].filter(Boolean).join(' · ')||'Times not listed')+'</div>'+(present(dl)?'<p>'+esc(dl)+'</p>':'')+'</div>'});
-  if(v.f1){var fu=v.f1.url&&/^https?:\/\//.test(v.f1.url)?v.f1.url:'';h+='<div class="card grad f1card"><h4><span class="f1b">F1</span>F1 package</h4><div class="tm">'+esc(v.f1.event)+' · '+esc(v.f1.dates)+'</div><p class="f1price"><b>'+esc(v.f1.prices)+'</b></p>'+(v.f1.note?'<p>'+esc(v.f1.note)+'</p>':'')+(fu?'<a class="btn" href="'+esc(fu)+'" target="_blank" rel="noopener">'+ic('nav')+'Book / details: '+esc(fu.replace(/^https?:\/\/(www\.)?/,'').split('/')[0])+'</a>':'')+'<div class="tm" style="margin-top:8px">Prices from public listings (Oct 2026); confirm with the venue.</div></div>'}
   h+='<div id="menublock"></div>';
   if(v.ik)h+='<div class="card grad badge-ik"><div class="gi">'+ic('gift')+'</div><div style="flex:1"><h4>'+(onIK(v)?'On inKind':'Possibly on inKind')+'</h4><div class="tm">'+(onIK(v)?'Pay with inKind credit for bonus value.':'Unclear match — check the app.')+'</div><a class="src" href="'+INKIND_URL+'" target="_blank" rel="noopener">Open inKind (referral link)</a></div></div>';
   var notes=KS.map(function(k){return v[k]&&present(v[k].notes)?v[k].notes:''}).filter(Boolean);
@@ -304,10 +302,10 @@ function menuBlock(v){
   var li=function(name,price,md){var ph=photoFor(X,name),at='';if(ph){at=' class="ph" data-ph="'+PH.length+'" role="button" tabindex="0" aria-label="'+esc(name)+' photo"';PH.push({name:name,price:price,srcs:ph})}
     return '<li'+at+'><span class="nm">'+esc(name)+(ph?'<span class="phi" title="Photo">'+ic('camera')+'</span>':'')+(md?'<span class="md">'+esc(md)+'</span>':'')+'</span><span class="pr">'+esc(price)+'</span></li>'};
   var h='<div class="tabs" role="tablist">'+tabs.map(function(t){return '<button class="chip'+(t===sel?' on':'')+'" data-mt="'+t+'" role="tab">'+MT[t]+'</button>'}).join('')+'</div><div class="card grad">';
-  if(META[sel]){var its=itemsFor(v,sel);h+='<h4>'+MT[sel]+' deals</h4><ul class="items">'+its.map(function(i){return li(i.name,fmtPrice(i))}).join('')+'</ul>';var u=safeUrl(v[sel].url);if(u)h+='<a class="src" href="'+esc(u)+'" target="_blank" rel="noopener">Source: '+esc(u.replace(/^https?:\/\/(www\.)?/,'').split('/')[0])+'</a>'}
+  if(META[sel]){var its=itemsFor(v,sel);h+='<h4>'+MT[sel]+' deals</h4><ul class="items">'+its.map(function(i){return li(i.name,fmtPrice(i))}).join('')+'</ul>'}
   else{var secs=((M&&M[sel==='dn'?'f':'d'])||[]).concat(X?X.extra[sel==='dn'?'f':'d']:[]),tot=0;secs.forEach(function(s){tot+=s[1].length});h+='<h4>'+MT[sel]+' menu <small style="color:#9A9AA0;font-weight:500">'+tot+' items</small></h4>';
     secs.forEach(function(s,si){h+='<details class="ms"'+(tot<=40||si<2?' open':'')+'><summary>'+esc(s[0]||'Menu')+' ('+s[1].length+')</summary><ul class="items">'+s[1].map(function(it){var p=it[1]==null?'':'$'+(it[1]%1?it[1].toFixed(2):it[1])+(it[3]!=null&&it[3]>it[1]?'–$'+it[3]:'');return li(it[0],p,it[2])}).join('')+'</ul></details>'});
-    h+='<div class="note">Menu from the restaurant’s site; prices may change.'+(X?' '+esc(X.credit)+'; items without a price are from the photo set.':'')+'</div>';var u2=safeUrl(M&&M.u);if(u2)h+='<a class="src" href="'+esc(u2)+'" target="_blank" rel="noopener">Source: '+esc(u2.replace(/^https?:\/\/(www\.)?/,'').split('/')[0])+'</a>'}
+    h+='<div class="note">Menu from the restaurant’s site; prices may change.'+(X?' '+esc(X.credit)+'; items without a price are from the photo set.':'')+'</div>'}
   b.innerHTML=h+'</div>';
   b.querySelectorAll('[data-mt]').forEach(function(x){x.onclick=function(){dTab[v.id]=x.getAttribute('data-mt');menuBlock(v)}});
   b.querySelectorAll('li.ph').forEach(function(x){var go=function(){openViewer(PH,+x.getAttribute('data-ph'))};x.onclick=go;x.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}}});
