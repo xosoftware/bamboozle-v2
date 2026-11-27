@@ -1,4 +1,4 @@
-/* BamBoozle v2 — layout modeled on the Replit "BamBoozle" Expo app (Now / Deals / Map / Search / Me tabs), wired to the BamBoozle PWA data. */
+/* BamBoozle v2 — layout modeled on the Replit "BamBoozle" Expo app (Now / Map / Search / Me tabs), wired to the BamBoozle PWA data. */
 (function(){
 "use strict";
 var INKIND_URL='https://app.inkind.com/refer/VMDEOCC5';
@@ -76,7 +76,6 @@ function venueStatus(v,only){var n=vegasNow(),best=null;KS.forEach(function(k){i
 function fmtPrice(i){if(i.price!=null)return String(i.range||('$'+i.price)).replace(/\s+/g,'');if(i.off)return i.off==='half'?'½ off':i.off==='bogo'?'BOGO':/%$/.test(i.off)?i.off+' off':i.off;return ''}
 function itemsFor(v,k){var cs=k?[META[k].icat]:KS.filter(function(x){return v[x]}).map(function(x){return META[x].icat});return (v.items||[]).filter(function(i){return i.q!=='meta'&&cs.indexOf(i.category)>=0})}
 function headline(v,k){var its=itemsFor(v,k).slice().sort(function(a,b){var pa=a.price!=null,pb=b.price!=null;if(pa!==pb)return pa?-1:1;return (a.price||0)-(b.price||0)});return its}
-function cheapest(v,k){var p=null;itemsFor(v,k).forEach(function(i){if(i.price!=null&&(p==null||i.price<p))p=i.price});return p}
 function primaryK(v,k){return k||(KS.filter(function(x){return v[x]})[0])||null}
 function onIK(v){return !!(v.ik&&v.ik.s==='Yes')}
 function street(a){return a?String(a).split(',')[0].trim():''}
@@ -147,34 +146,6 @@ function feedRow(x){
    '<div class="tt">'+esc(s.win)+'</div></div></div><div class="foot ffoot">'+metaRow(v,s.k)+'</div></a>';
 }
 function bindChips(attr,fn){view.querySelectorAll('[data-'+attr+']').forEach(function(b){b.onclick=function(){fn(b.getAttribute('data-'+attr))}})}
-
-/* ---------- DEALS ---------- */
-var dealF='all',dealSort='distance',dealLimit=30,dealQ='';
-var DEAL_CHIPS=TYPE_CHIPS.concat([['ik','inKind'],['saved','Saved']]);
-function dealList(){
-  var o=origin(),f=dealF;
-  var arr=DATA.filter(function(v){if(f==='ik')return onIK(v);if(f==='saved')return isSaved(v);if(f==='all')return KS.some(function(k){return v[k]})||onIK(v);return !!v[f]});
-  var k=(f==='all'||f==='ik'||f==='saved')?null:f;
-  var q=dealQ.trim().toLowerCase();
-  function dollarItems(v){var pk=primaryK(v,k);return pk?itemsFor(v,pk).filter(function(i){return i.price!=null}).sort(function(a,b){return (a.price||0)-(b.price||0)}):[]}
-  if(!q){arr=arr.map(function(v){var mt=dollarItems(v);return {v:v,d:miles(o,v),p:cheapest(v,k),mt:mt}}).filter(function(x){return x.mt.length})}
-  else arr=arr.map(function(v){var mt=dollarItems(v).filter(function(i){return String(i.name||'').toLowerCase().indexOf(q)>=0});var p=null;mt.forEach(function(i){if(p==null||i.price<p)p=i.price});return {v:v,d:miles(o,v),p:p,mt:mt}}).filter(function(x){return x.mt.length});
-  if(dealSort==='price')arr.sort(function(a,b){return (a.p==null?1e9:a.p)-(b.p==null?1e9:b.p)||(a.d||0)-(b.d||0)});
-  else arr.sort(function(a,b){return (a.d==null?1e9:a.d)-(b.d==null?1e9:b.d)||(b.v.rating||0)-(a.v.rating||0)});
-  return {arr:arr,k:k};
-}
-function renderDeals(){
-  var r=dealList();
-  var h=header('Don’t pay full price.')+chipsHtml(DEAL_CHIPS,dealF,'df')+'<div class="dcount">'+r.arr.length+' spots'+(originLabel()?' · '+originLabel():'')+'</div><div class="pad">';
-  r.arr.slice(0,dealLimit).forEach(function(x){h+=dealCard(x.v,r.k,null,x.mt)});
-  if(r.arr.length>dealLimit)h+='<button class="btn ghost loadmore" id="more">Show more ('+(r.arr.length-dealLimit)+')</button>';
-  if(!r.arr.length)h+=dealF==='saved'?empty('heart','No saved spots yet','Tap the heart on any spot to keep it here.'):(dealQ.trim()?empty('beer','No matches','Try a different search.'):empty('beer','No deals here','Try a different filter.'));
-  h+='</div><div class="sortfab"><label class="fsearch"><svg viewBox="0 0 24 24">'+(ICONS.search||'')+'</svg><input id="dq" type="search" placeholder="Search deals" autocomplete="off" value="'+esc(dealQ)+'"></label><span class="sep"></span><button class="schip'+(dealSort==='distance'?' on':'')+'" data-ds="distance">Distance</button><button class="schip'+(dealSort==='price'?' on':'')+'" data-ds="price">Price</button></div>';
-  view.innerHTML=h;
-  bindChips('df',function(v){dealF=v;dealLimit=30;renderDeals()});bindChips('ds',function(v){dealSort=v;dealLimit=30;renderDeals()});
-  var dq=$('dq');dq.oninput=function(){dealQ=dq.value;dealLimit=30;var y=scrollY,c=dq.selectionStart;renderDeals();scrollTo(0,y);var n=$('dq');n.focus();try{n.setSelectionRange(c,c)}catch(e){}};
-  if($('more'))$('more').onclick=function(){dealLimit+=40;var y=scrollY;renderDeals();scrollTo(0,y)};
-}
 
 /* ---------- SEARCH ---------- */
 var sq='',sLimit=30;
@@ -319,7 +290,7 @@ function renderMe(){
   if(hm)h+='<div class="homecur"><div><b>'+ic('home','width:14px;height:14px;vertical-align:-2px;color:#E8A317')+' '+esc(hm.label)+'</b><small>'+(hm.kind==='zip'?'ZIP code':hm.kind==='gps'?'Current location':'Street address')+'</small></div><button class="lnk red" id="hrm">Remove</button></div>'+
     '<div class="toggle" style="margin-bottom:12px"><span>Measure distance from Home</span><button class="sw'+(useHome()?' on':'')+'" id="huse" role="switch" aria-checked="'+useHome()+'" aria-label="Measure distance from Home"></button></div>';
   h+='<div class="field"><input id="hin" placeholder="e.g. 123 Main St, Las Vegas or 89109" autocomplete="street-address" enterkeyhint="done"><button class="btn" id="hsave">'+(hm?'Change':'Save')+'</button></div><div class="row2"><button class="btn ghost" id="hgps">'+ic('loc')+'Use current location</button></div><div class="msg" id="hmsg"></div></div>';
-  h+='<div class="grp grad"><h3>inKind</h3><p class="sub">'+DATA.filter(onIK).length+' spots take inKind credit. Join with Biv’s referral link for bonus credit.</p><a class="btn" href="'+INKIND_URL+'" target="_blank" rel="noopener">'+ic('gift')+'Open inKind</a> <a class="btn ghost" href="#/deals" id="ikl">See inKind spots</a></div>';
+  h+='<div class="grp grad"><h3>inKind</h3><p class="sub">'+DATA.filter(onIK).length+' spots take inKind credit. Join with Biv’s referral link for bonus credit.</p><a class="btn" href="'+INKIND_URL+'" target="_blank" rel="noopener">'+ic('gift')+'Open inKind</a> <a class="btn ghost" href="#/map" id="ikl">See inKind spots</a></div>';
   h+='<div class="sech" style="margin:8px 22px 12px"><i style="background:#E8A317"></i>Saved spots<em>'+sv.length+'</em></div><div class="pad">';
   h+=sv.length?sv.map(function(v){return dealCard(v,null)}).join(''):empty('heart','No saved spots yet','Tap the heart on any spot to keep it here.');
   h+='</div><p class="note" style="text-align:center;margin:20px">BamBoozle v2 preview · '+DATA.length+' spots · data shared with BamBoozle</p>';
@@ -328,7 +299,7 @@ function renderMe(){
   var saveH=function(o){o.t=Date.now();lsSet('bb2Home',o);lsSet('bb2UseHome',true);toast('Home saved');renderMe()};
   if($('hrm'))$('hrm').onclick=function(){lsSet('bb2Home',null);toast('Home removed');renderMe()};
   if($('huse'))$('huse').onclick=function(){lsSet('bb2UseHome',!useHome());renderMe()};
-  $('ikl').onclick=function(){dealF='ik'};
+  $('ikl').onclick=function(){mapF='ik'};
   $('hgps').onclick=function(){msg('Getting your location…');locate(function(p){if(p)saveH({label:'Current location',lat:p[0],lng:p[1],kind:'gps'});else msg('Couldn’t get your location. Check location permission.',true)},true)};
   $('hsave').onclick=function(){var q=$('hin').value,t=validHome(q),btn=this;
     if(t==='bad'){msg('Enter a 5-digit ZIP or a street address that starts with a house number.',true);return}
@@ -421,11 +392,12 @@ function renderChat(){
 /* ---------- router ---------- */
 function route(){
   var hsh=location.hash||'#/now',m;
+  if(/^#\/deals(\/|$)/.test(hsh)){history.replaceState(null,'','#/now');hsh='#/now'}
   var tab=hsh.split('/')[1]||'now';
   document.querySelectorAll('#tabbar a').forEach(function(a){a.classList.toggle('on',a.getAttribute('data-tab')===tab)});
   if(tab!=='map'&&mapEl&&mapEl.parentNode)mapEl.parentNode.removeChild(mapEl);
   if((m=hsh.match(/^#\/spot\/(\d+)/)))return renderDetail(+m[1]);
-  ({now:renderNow,deals:renderDeals,map:renderMap,search:renderSearch,me:renderMe,chat:renderChat}[tab]||renderNow)();
+  ({now:renderNow,map:renderMap,search:renderSearch,me:renderMe,chat:renderChat}[tab]||renderNow)();
   if(tab!=='map'&&tab!=='spot'&&tab!=='chat')scrollTo(0,0);
 }
 window.addEventListener('hashchange',route);
