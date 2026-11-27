@@ -100,7 +100,7 @@ function dealCard(v,k,hitHtml,mt,opt){
   var times=k&&v[k]&&present(v[k].times)?ft(String(v[k].times).split(' | ')[0]):'';
   var s='<a class="dcard grad'+(opt.plain?' scard':'')+'" href="#/spot/'+v.id+'"><div class="body"><div class="hrow">';
   s+='<div class="info"><div class="in">'+esc(v.name)+'</div><div class="ad">'+esc(v.addr||v.loc||'')+'</div></div><svg class="chev" viewBox="0 0 24 24">'+ICONS.chev+'</svg></div>';
-  if(shown.length){s+='<ul class="items ditems">';shown.forEach(function(i){var p=fmtPrice(i);s+='<li><span class="nm">'+esc(tc(i.name))+'</span>'+(p?'<span class="pr"'+(opt.plain?'':' style="color:'+m.color+'"')+'>'+esc(p)+'</span>':'')+'</li>'});s+='</ul>';if(extra)s+='<div class="more">+'+extra+' more deal'+(extra>1?'s':'')+'</div>'}
+  if(shown.length){s+='<ul class="items'+(opt.plain?'':' ditems')+'">';shown.forEach(function(i){var p=fmtPrice(i);s+='<li><span class="nm">'+esc(tc(i.name))+'</span>'+(p?'<span class="pr"'+(opt.plain?'':' style="color:'+m.color+'"')+'>'+esc(p)+'</span>':'')+'</li>'});s+='</ul>';if(extra)s+='<div class="more">+'+extra+' more deal'+(extra>1?'s':'')+'</div>'}
   else if(k&&v[k]){var dl=k==='br'?(v.br.spec||v.br.bname):v[k].deals;if(present(dl))s+='<div class="dtext">'+esc(dl)+'</div>'}
   if(hitHtml)s+=hitHtml;
   s+='</div><div class="foot"><div class="fl">'+(k?'<span class="ty" style="color:'+m.color+'">'+ic(m.icon)+m.label+'</span>':'')+(times?'<span>'+ic('clock')+esc(times)+'</span>':'')+(d!=null?'<span>'+ic('pin')+fmtMi(d,v)+'</span>':'')+'</div><div class="fr">'+(onIK(v)?'<span class="ikb">'+ic('gift')+'inKind</span>':'')+(st&&st.bucket==='live'?'<span class="liveb"><i></i>Live</span>':'')+'</div></div></a>';

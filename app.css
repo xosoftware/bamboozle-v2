@@ -70,6 +70,7 @@ svg{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-lin
 .info .bn2{font-size:13px;font-weight:600;color:var(--t2);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .info .ad{font-size:12px;color:var(--t3);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ditems{margin:0}.ditems .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ditems .pr{font-variant-numeric:tabular-nums}
+.dcard .body>.items{margin-top:0}
 .dtext{font-size:13px;color:var(--t2)}
 .chev{align-self:center;width:18px;height:18px;color:var(--t3);flex:none}
 .sec{display:flex;flex-direction:column;gap:8px}
